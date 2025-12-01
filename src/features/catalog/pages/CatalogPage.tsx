@@ -5,7 +5,6 @@ import {
     Grid3X3,
     List,
     ShoppingCart,
-    Lock
 } from 'lucide-react'
 import { Card } from '@components/ui/Card'
 import { Button } from '@components/ui/Button'
@@ -20,7 +19,6 @@ import type { PartCategory, Part } from '@/types'
 export function CatalogPage() {
     // Selectores optimizados para evitar re-renders
     const ownedParts = useUserStore((state) => state.user?.ownedParts ?? [])
-    const userLevel = useUserStore((state) => state.user?.level ?? 1)
     const userCurrency = useUserStore((state) => state.user?.currency ?? 0)
     const userEmail = useUserStore((state) => state.user?.email)
     const purchasePart = useUserStore((state) => state.purchasePart)
@@ -73,11 +71,6 @@ export function CatalogPage() {
             return
         }
 
-        if (part.unlockLevel && userLevel < part.unlockLevel) {
-            notify.error('Nivel insuficiente', `Necesitas nivel ${part.unlockLevel} para desbloquear esta parte`)
-            return
-        }
-
         // Demo user has infinite money
         if (!isDemoUser && userCurrency < part.price) {
             notify.error('Fondos insuficientes', 'No tienes suficiente dinero para esta compra')
@@ -88,10 +81,9 @@ export function CatalogPage() {
         if (success) {
             notify.success('¡Compra exitosa!', `${part.name} añadido a tu inventario`)
         }
-    }, [ownedParts, userLevel, userCurrency, isDemoUser, purchasePart, notify])
+    }, [ownedParts, userCurrency, isDemoUser, purchasePart, notify])
 
     const isOwned = useCallback((partId: string) => ownedParts.includes(partId), [ownedParts])
-    const isLocked = useCallback((part: Part) => part.unlockLevel ? userLevel < part.unlockLevel : false, [userLevel])
 
     return (
         <div className="h-full flex flex-col">
@@ -176,8 +168,6 @@ export function CatalogPage() {
                                 part={part}
                                 onPurchase={handlePurchase}
                                 isOwned={isOwned(part.id)}
-                                isLocked={isLocked(part)}
-                                userLevel={userLevel}
                             />
                         ))}
                     </div>
@@ -189,8 +179,6 @@ export function CatalogPage() {
                                 part={part}
                                 onPurchase={handlePurchase}
                                 isOwned={isOwned(part.id)}
-                                isLocked={isLocked(part)}
-                                userLevel={userLevel}
                             />
                         ))}
                     </div>
@@ -213,32 +201,21 @@ function PartCard({
     part,
     onPurchase,
     isOwned,
-    isLocked,
 }: {
     part: Part
     onPurchase: (part: Part) => void
     isOwned: boolean
-    isLocked: boolean
-    userLevel: number
 }) {
     return (
         <Card
             variant="hover"
             padding="none"
-            className={`overflow-hidden ${isLocked ? 'opacity-60' : ''}`}
+            className="overflow-hidden"
         >
             {/* Image Placeholder */}
             <div
                 className="h-32 bg-torres-dark-600 flex items-center justify-center relative border-b border-torres-primary/30"
             >
-                {isLocked && (
-                    <div className="absolute inset-0 bg-torres-dark-900/80 flex items-center justify-center">
-                        <div className="text-center">
-                            <Lock className="w-8 h-8 text-torres-light-400 mx-auto mb-1" />
-                            <p className="text-xs text-torres-light-400">Nivel {part.unlockLevel}</p>
-                        </div>
-                    </div>
-                )}
                 <span className="text-4xl opacity-30">{PART_CATEGORIES[part.category].icon}</span>
             </div>
 
@@ -283,14 +260,14 @@ function PartCard({
                             {part.stats.downforceAdd > 0 ? '+' : ''}{part.stats.downforceAdd} kg DF
                         </p>
                     )}
-                    {part.stats.brakingPower && part.stats.brakingPower !== 0 && (
-                        <p className={part.stats.brakingPower > 0 ? "text-torres-warning" : "text-torres-danger"}>
-                            {part.stats.brakingPower > 0 ? '+' : ''}{part.stats.brakingPower}% frenos
+                    {part.stats.brakingPower && part.stats.brakingPower !== 1 && (
+                        <p className={part.stats.brakingPower > 1 ? "text-torres-warning" : "text-torres-danger"}>
+                            {part.stats.brakingPower > 1 ? '+' : ''}{Math.round((part.stats.brakingPower - 1) * 100)}% frenos
                         </p>
                     )}
-                    {part.stats.tireGrip && part.stats.tireGrip !== 0 && (
-                        <p className={part.stats.tireGrip > 0 ? "text-torres-success" : "text-torres-danger"}>
-                            {part.stats.tireGrip > 0 ? '+' : ''}{part.stats.tireGrip}% grip
+                    {part.stats.tireGrip && part.stats.tireGrip !== 1 && (
+                        <p className={part.stats.tireGrip > 1 ? "text-torres-success" : "text-torres-danger"}>
+                            {part.stats.tireGrip > 1 ? '+' : ''}{Math.round((part.stats.tireGrip - 1) * 100)}% grip
                         </p>
                     )}
                 </div>
@@ -306,7 +283,6 @@ function PartCard({
                         <Button
                             size="sm"
                             onClick={() => onPurchase(part)}
-                            disabled={isLocked}
                             leftIcon={<ShoppingCart className="w-3 h-3" />}
                         >
                             Comprar
@@ -322,28 +298,21 @@ function PartListItem({
     part,
     onPurchase,
     isOwned,
-    isLocked,
 }: {
     part: Part
     onPurchase: (part: Part) => void
     isOwned: boolean
-    isLocked: boolean
-    userLevel: number
 }) {
     return (
         <Card
             variant="hover"
-            className={`flex items-center gap-4 p-4 ${isLocked ? 'opacity-60' : ''}`}
+            className="flex items-center gap-4 p-4"
         >
             {/* Icon */}
             <div
                 className="w-12 h-12 rounded-lg bg-torres-dark-600 flex items-center justify-center flex-shrink-0 border-l-2 border-torres-primary"
             >
-                {isLocked ? (
-                    <Lock className="w-5 h-5 text-torres-light-400" />
-                ) : (
-                    <span className="text-xl opacity-50">⚙️</span>
-                )}
+                <span className="text-xl opacity-50">⚙️</span>
             </div>
 
             {/* Info */}
@@ -386,7 +355,6 @@ function PartListItem({
                     <Button
                         size="sm"
                         onClick={() => onPurchase(part)}
-                        disabled={isLocked}
                     >
                         Comprar
                     </Button>

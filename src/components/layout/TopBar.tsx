@@ -6,7 +6,6 @@ export function TopBar() {
     // Selectores optimizados para evitar re-renders innecesarios
     const username = useUserStore((state) => state.user?.username)
     const currency = useUserStore((state) => state.user?.currency)
-    const level = useUserStore((state) => state.user?.level)
     const email = useUserStore((state) => state.user?.email)
 
     const isDemoUser = email?.toLowerCase() === 'demo@torres.com'
@@ -49,9 +48,6 @@ export function TopBar() {
                     <div className="text-left hidden md:block">
                         <p className="text-sm font-medium text-torres-light-100">
                             {username ?? 'Ingeniero'}
-                        </p>
-                        <p className="text-xs text-torres-light-400">
-                            Nivel {level ?? 1}
                         </p>
                     </div>
                 </button>

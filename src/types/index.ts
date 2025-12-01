@@ -95,7 +95,6 @@ export interface Part {
     description: string
     imageUrl?: string
     modelUrl?: string // 3D model URL
-    unlockLevel?: number
 }
 
 export interface PartStats {
@@ -172,7 +171,6 @@ export interface Vehicle {
     // Metadata
     imageUrl?: string
     modelUrl?: string
-    unlockLevel?: number
 }
 
 export interface BaseVehicleSpecs {
@@ -269,16 +267,13 @@ export interface User {
     avatar?: string
     createdAt: Date
 
-    // Progression
-    level: number
-    experience: number
+    // Currency
     currency: number
     premiumCurrency: number
 
     // Inventory
     ownedVehicles: string[] // Vehicle IDs
     ownedParts: string[] // Part IDs
-    unlockedParts: string[] // Part IDs available for purchase
 
     // Achievements
     achievements: Achievement[]
@@ -415,7 +410,7 @@ export interface EventPrize {
 export interface GarageState {
     currentVehicle: Vehicle | null
     selectedPart: Part | null
-    viewMode: '2d' | '3d' | 'blueprint' | 'exploded'
+    viewMode: 'technical' | '3d' | 'blueprint'
     selectedSystem: PartCategory | null
     compareMode: boolean
     compareVehicle: Vehicle | null
@@ -455,6 +450,140 @@ export interface Notification {
         label: string
         onClick: () => void
     }
+}
+
+// ============================================
+// 3D/2D RENDERING TYPES
+// ============================================
+
+export type PaintFinish = 'metallic' | 'matte' | 'gloss' | 'pearl' | 'chrome' | 'carbon' | 'satin'
+
+export interface VehicleModelConfig {
+    id: string
+    name: string
+    manufacturer: string
+    year: number
+    dimensions: {
+        length: number  // mm
+        width: number   // mm
+        height: number  // mm
+        wheelbase: number // mm
+    }
+    modelUrl?: string  // URL to .glb base model
+    blueprints?: {
+        side?: string
+        front?: string
+        rear?: string
+        top?: string
+    }
+    slots: Record<string, PartSlotConfig>
+    defaultColors: {
+        body: string
+        interior: string
+        wheels: string
+        calipers: string
+    }
+}
+
+export interface PartSlotConfig {
+    position: [number, number, number]  // x, y, z
+    rotation: [number, number, number]  // x, y, z in radians
+    scale?: [number, number, number]
+    compatible?: string[]  // Part IDs that fit this slot
+    boltPattern?: BoltPattern
+    stockSize?: number  // For wheels
+}
+
+export interface PartModelConfig {
+    id: string
+    name: string
+    category: PartCategory
+    modelUrl: string  // URL to .glb model
+    thumbnailUrl?: string
+    variants?: PartModelVariant[]
+    materials?: {
+        paintable?: boolean
+        colorSlots?: string[]  // Which parts accept color changes
+    }
+}
+
+export interface PartModelVariant {
+    id: string
+    name: string
+    modelUrl: string
+    size?: number  // For wheels: 17, 18, 19, etc.
+}
+
+export interface VehicleRenderState {
+    vehicleId: string
+    modelConfig: VehicleModelConfig | null
+    loadedParts: Record<string, LoadedPartInfo>
+    materials: VehicleMaterials
+    camera: CameraState
+    environment: EnvironmentConfig
+}
+
+export interface LoadedPartInfo {
+    slotName: string
+    partId: string | null  // null = stock
+    modelUrl: string | null
+    isLoaded: boolean
+}
+
+export interface VehicleMaterials {
+    body: {
+        color: string
+        finish: PaintFinish
+        roughness: number
+        metalness: number
+    }
+    accents: {
+        color: string
+    }
+    wheels: {
+        color: string
+        finish: PaintFinish
+    }
+    calipers: {
+        color: string
+    }
+    glass: {
+        tint: number  // 0-1 opacity
+    }
+}
+
+export interface CameraState {
+    position: [number, number, number]
+    target: [number, number, number]
+    fov: number
+    zoom: number
+}
+
+export interface EnvironmentConfig {
+    preset: 'studio' | 'garage' | 'outdoor' | 'showroom'
+    hdriUrl?: string
+    ambientIntensity: number
+    shadowIntensity: number
+}
+
+// Blueprint View Types
+export interface BlueprintViewState {
+    activeView: 'side' | 'front' | 'rear' | 'top'
+    zoom: number
+    panOffset: { x: number; y: number }
+    showGrid: boolean
+    showDimensions: boolean
+    showAnnotations: boolean
+    highlightedParts: string[]
+}
+
+export interface BlueprintAnnotation {
+    id: string
+    partId?: string
+    position: { x: number; y: number }
+    label: string
+    description?: string
+    type: 'dimension' | 'part' | 'note'
 }
 
 // Types are already exported inline above

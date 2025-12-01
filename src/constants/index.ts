@@ -268,25 +268,20 @@ export const PERFORMANCE_THRESHOLDS = {
 
 // View Modes
 export const VIEW_MODES = {
-    '2d': {
-        name: 'Vista 2D',
-        icon: 'Square',
-        description: 'Vista técnica bidimensional',
+    technical: {
+        name: 'Técnica',
+        icon: 'Car',
+        description: 'Vista técnica clásica',
     },
     '3d': {
-        name: 'Vista 3D',
+        name: '3D',
         icon: 'Box',
         description: 'Modelo 3D interactivo',
     },
     blueprint: {
-        name: 'Plano',
-        icon: 'FileText',
-        description: 'Vista estilo blueprint',
-    },
-    exploded: {
-        name: 'Explosionada',
-        icon: 'Layers',
-        description: 'Vista de componentes separados',
+        name: 'Planos',
+        icon: 'FileImage',
+        description: 'Vistas 2D tipo blueprint',
     },
 } as const
 

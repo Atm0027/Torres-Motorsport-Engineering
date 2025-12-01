@@ -9,18 +9,24 @@ import {
     Car,
     Palette,
     Gauge,
-    Settings2
+    Settings2,
+    Clock
 } from 'lucide-react'
 import { Card } from '@components/ui/Card'
 import { Button } from '@components/ui/Button'
 import { useUserStore } from '@stores/userStore'
-import { formatNumber } from '@utils/formatters'
+import { useGarageStore } from '@stores/garageStore'
+import { formatNumber, formatHorsepower } from '@utils/formatters'
 
 export function HomePage() {
     // Selectores optimizados para evitar re-renders
     const stats = useUserStore((state) => state.user?.stats)
-    const level = useUserStore((state) => state.user?.level ?? 1)
-    const experience = useUserStore((state) => state.user?.experience ?? 0)
+    const savedBuilds = useGarageStore((state) => state.savedBuilds)
+
+    // Obtener el último build para el banner
+    const latestBuild = savedBuilds.length > 0 ? savedBuilds[0] : null
+    // Obtener los últimos 3 builds para la sección inferior
+    const lastThreeBuilds = savedBuilds.slice(0, 3)
 
     const quickStats = [
         { label: 'Potencia Máxima', value: `${formatNumber(stats?.highestHorsepower ?? 0)} CV`, icon: Zap },
@@ -96,15 +102,6 @@ export function HomePage() {
                 <div className="absolute inset-0 bg-blueprint opacity-30"></div>
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-torres-primary/10 to-transparent"></div>
 
-                {/* Decorative car silhouette */}
-                <div className="absolute right-8 bottom-0 opacity-10">
-                    <svg viewBox="0 0 300 120" className="w-96 h-auto text-torres-primary">
-                        <path fill="currentColor" d="M20,80 L50,80 L70,40 L230,40 L250,80 L280,80 L280,100 L20,100 Z" />
-                        <circle fill="currentColor" cx="70" cy="100" r="20" />
-                        <circle fill="currentColor" cx="230" cy="100" r="20" />
-                    </svg>
-                </div>
-
                 <div className="relative p-8 md:p-12">
                     <div className="max-w-2xl">
                         <p className="text-torres-primary font-semibold uppercase tracking-widest mb-2 text-sm">
@@ -132,6 +129,53 @@ export function HomePage() {
                             </Link>
                         </div>
                     </div>
+
+                    {/* Latest Build - Right Side Full Height */}
+                    {latestBuild && (
+                        <div className="absolute top-6 bottom-6 right-6 lg:top-8 lg:bottom-8 lg:right-8">
+                            <Link to={`/garage?vehicle=${latestBuild.vehicleId}`} className="h-full block">
+                                <Card
+                                    variant="hover"
+                                    className="p-4 bg-torres-dark-700/90 backdrop-blur-sm border-torres-dark-500 hover:border-torres-primary/50 transition-all w-72 h-full flex flex-col"
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Clock className="w-3 h-3 text-torres-primary" />
+                                        <span className="text-xs font-semibold text-torres-light-300 uppercase tracking-wider">
+                                            Última Creación
+                                        </span>
+                                    </div>
+
+                                    {/* Image placeholder - fills available space */}
+                                    <div className="w-full flex-1 rounded-lg bg-torres-dark-600 flex items-center justify-center overflow-hidden mb-3">
+                                        {latestBuild.imageUrl ? (
+                                            <img
+                                                src={latestBuild.imageUrl}
+                                                alt={latestBuild.vehicleName}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <Car className="w-20 h-20 text-torres-dark-400" />
+                                        )}
+                                    </div>
+
+                                    {/* Build info */}
+                                    <div>
+                                        <h4 className="text-base font-semibold text-torres-light-100 truncate">
+                                            {latestBuild.vehicleName}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-sm text-torres-primary font-medium">
+                                                {formatHorsepower(latestBuild.metrics?.horsepower ?? 0)}
+                                            </span>
+                                            <span className="text-sm text-torres-light-400">
+                                                • {latestBuild.installedParts?.length ?? 0} partes
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -212,11 +256,11 @@ export function HomePage() {
 
             {/* Progress Section */}
             <section className="grid md:grid-cols-2 gap-6">
-                {/* Level Progress */}
+                {/* Quick Stats */}
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-display text-lg font-semibold text-torres-light-100 uppercase tracking-wider">
-                            Tu Nivel de Creador
+                            Tu Taller
                         </h3>
                         <Award className="w-5 h-5 text-torres-primary" />
                     </div>
@@ -224,28 +268,28 @@ export function HomePage() {
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-torres-primary to-torres-accent flex items-center justify-center">
                             <span className="font-display text-2xl font-bold text-white">
-                                {level}
+                                🔧
                             </span>
                         </div>
                         <div>
                             <p className="text-torres-light-100 font-medium">
-                                {level === 1 ? 'Aprendiz' : level < 10 ? 'Mecánico' : level < 25 ? 'Tuner' : 'Maestro'}
+                                Tuner Profesional
                             </p>
                             <p className="text-sm text-torres-light-400">
-                                {formatNumber(experience)} XP totales
+                                {formatNumber(stats?.totalBuilds ?? 0)} builds creados
                             </p>
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span className="text-torres-light-400">Progreso al siguiente nivel</span>
-                            <span className="text-torres-light-300">65%</span>
+                            <span className="text-torres-light-400">Partes instaladas</span>
+                            <span className="text-torres-light-300">{formatNumber(stats?.partsInstalled ?? 0)}</span>
                         </div>
                         <div className="h-2 bg-torres-dark-600 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-torres-primary to-torres-accent rounded-full"
-                                style={{ width: '65%' }}
+                                style={{ width: `${Math.min((stats?.partsInstalled ?? 0) / 100 * 100, 100)}%` }}
                             />
                         </div>
                     </div>
@@ -261,19 +305,61 @@ export function HomePage() {
                     </div>
 
                     <div className="space-y-3">
-                        {[
-                            { action: 'Motor actualizado', vehicle: 'Nissan Skyline R34', time: 'Hace 2 horas' },
-                            { action: 'Configuración guardada', vehicle: 'Toyota Supra A80', time: 'Hace 1 día' },
-                            { action: 'Nuevo proyecto', vehicle: 'Mazda RX-7 FD', time: 'Hace 2 días' },
-                        ].map((activity, i) => (
-                            <div key={i} className="flex items-center justify-between py-2 border-b border-torres-dark-600 last:border-0">
-                                <div>
-                                    <p className="text-torres-light-100 font-medium">{activity.action}</p>
-                                    <p className="text-sm text-torres-light-400">{activity.vehicle}</p>
-                                </div>
-                                <span className="text-xs text-torres-light-400">{activity.time}</span>
+                        {lastThreeBuilds.length > 0 ? (
+                            lastThreeBuilds.map((build) => {
+                                const savedDate = new Date(build.savedAt)
+                                const now = new Date()
+                                const diffMs = now.getTime() - savedDate.getTime()
+                                const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+                                const diffDays = Math.floor(diffHours / 24)
+                                const timeAgo = diffDays > 0
+                                    ? `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`
+                                    : diffHours > 0
+                                        ? `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`
+                                        : 'Hace un momento'
+
+                                return (
+                                    <Link
+                                        key={build.id}
+                                        to={`/garage?vehicle=${build.vehicleId}`}
+                                        className="block"
+                                    >
+                                        <div className="flex items-center justify-between py-2 border-b border-torres-dark-600 last:border-0 hover:bg-torres-dark-700/50 -mx-2 px-2 rounded transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-8 rounded bg-torres-dark-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                    {build.imageUrl ? (
+                                                        <img
+                                                            src={build.imageUrl}
+                                                            alt={build.vehicleName}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <Car className="w-4 h-4 text-torres-dark-400" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-torres-light-100 font-medium">{build.vehicleName}</p>
+                                                    <p className="text-sm text-torres-primary">
+                                                        {formatHorsepower(build.metrics?.horsepower ?? 0)} • {build.installedParts?.length ?? 0} partes
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-torres-light-400">{timeAgo}</span>
+                                        </div>
+                                    </Link>
+                                )
+                            })
+                        ) : (
+                            <div className="text-center py-6">
+                                <Car className="w-10 h-10 text-torres-dark-500 mx-auto mb-2" />
+                                <p className="text-torres-light-400 text-sm">
+                                    Aún no has guardado ningún build
+                                </p>
+                                <Link to="/garage" className="text-torres-primary text-sm hover:underline mt-1 inline-block">
+                                    ¡Crea tu primer coche!
+                                </Link>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </Card>
             </section>

@@ -1,9 +1,22 @@
 // ============================================
 // TORRES MOTORSPORT ENGINEERING - PHYSICS ENGINE
+// Optimizado con caché de cálculos
 // ============================================
 
 import type { Vehicle, PerformanceMetrics, PhysicsConfig } from '@/types'
 import { PHYSICS } from '@/constants'
+
+// Caché de métricas calculadas para evitar recálculos innecesarios
+const metricsCache = new WeakMap<Vehicle, { hash: string; metrics: PerformanceMetrics }>()
+
+// Generar hash de las partes instaladas para invalidar caché
+function generatePartsHash(vehicle: Vehicle): string {
+    const parts = vehicle.installedParts
+        .map(ip => `${ip.part.id}:${ip.tuningSettings?.boostTarget ?? 0}`)
+        .sort()
+        .join('|')
+    return `${vehicle.id}:${parts}`
+}
 
 // Default physics configuration (exported for potential future use)
 export const DEFAULT_PHYSICS: PhysicsConfig = {
@@ -16,8 +29,16 @@ export const DEFAULT_PHYSICS: PhysicsConfig = {
 
 /**
  * Calculate all performance metrics for a vehicle with its installed parts
+ * Utiliza caché para evitar recálculos si las partes no han cambiado
  */
 export function calculatePerformance(vehicle: Vehicle): PerformanceMetrics {
+    // Verificar caché
+    const currentHash = generatePartsHash(vehicle)
+    const cached = metricsCache.get(vehicle)
+    if (cached && cached.hash === currentHash) {
+        return cached.metrics
+    }
+
     const { baseSpecs, installedParts } = vehicle
 
     // Calculate base values
@@ -29,57 +50,35 @@ export function calculatePerformance(vehicle: Vehicle): PerformanceMetrics {
     let brakingPower = 1.0
     let gripMultiplier = 1.0
 
-    // Apply part modifications
+    // Apply part modifications - optimizado con for...of
     for (const installedPart of installedParts) {
-        const stats = installedPart.part.stats
+        const { stats } = installedPart.part
 
         // Engine power modifications
-        if (stats.horsepowerAdd) {
-            horsepower += stats.horsepowerAdd
-        }
-        if (stats.horsepowerMultiplier) {
-            horsepower *= stats.horsepowerMultiplier
-        }
-        if (stats.torqueAdd) {
-            torque += stats.torqueAdd
-        }
-        if (stats.torqueMultiplier) {
-            torque *= stats.torqueMultiplier
-        }
+        if (stats.horsepowerAdd) horsepower += stats.horsepowerAdd
+        if (stats.horsepowerMultiplier) horsepower *= stats.horsepowerMultiplier
+        if (stats.torqueAdd) torque += stats.torqueAdd
+        if (stats.torqueMultiplier) torque *= stats.torqueMultiplier
 
         // Weight modifications
         weight += installedPart.part.weight
-        if (stats.weightReduction) {
-            weight -= stats.weightReduction
-        }
+        if (stats.weightReduction) weight -= stats.weightReduction
 
         // Aero modifications
-        if (stats.downforceAdd) {
-            downforce += stats.downforceAdd
-        }
-        if (stats.dragReduction) {
-            dragCoefficient *= (1 - stats.dragReduction / 100)
-        }
+        if (stats.downforceAdd) downforce += stats.downforceAdd
+        if (stats.dragReduction) dragCoefficient *= (1 - stats.dragReduction / 100)
 
         // Braking modifications
-        if (stats.brakingPower) {
-            brakingPower *= stats.brakingPower
-        }
+        if (stats.brakingPower) brakingPower *= stats.brakingPower
 
         // Grip modifications (tires)
-        if (stats.tireGrip) {
-            gripMultiplier *= stats.tireGrip
-        }
+        if (stats.tireGrip) gripMultiplier *= stats.tireGrip
 
         // Apply tuning if present
-        if (installedPart.tuningSettings) {
-            const tuning = installedPart.tuningSettings
-
-            // Boost tuning
-            if (tuning.boostTarget && stats.boostPressure) {
-                const boostDelta = tuning.boostTarget - stats.boostPressure
-                horsepower += boostDelta * 15 // ~15hp per 0.1 bar
-            }
+        const tuning = installedPart.tuningSettings
+        if (tuning?.boostTarget && stats.boostPressure) {
+            const boostDelta = tuning.boostTarget - stats.boostPressure
+            horsepower += boostDelta * 15 // ~15hp per 0.1 bar
         }
     }
 
@@ -110,7 +109,7 @@ export function calculatePerformance(vehicle: Vehicle): PerformanceMetrics {
     // Calculate efficiency score
     const efficiency = calculateEfficiency(horsepower, weight, fuelConsumption)
 
-    return {
+    const metrics: PerformanceMetrics = {
         horsepower: Math.round(horsepower),
         torque: Math.round(torque),
         weight: Math.round(weight),
@@ -126,6 +125,11 @@ export function calculatePerformance(vehicle: Vehicle): PerformanceMetrics {
         fuelConsumption: Math.round(fuelConsumption * 10) / 10,
         efficiency: Math.round(efficiency),
     }
+
+    // Guardar en caché
+    metricsCache.set(vehicle, { hash: currentHash, metrics })
+
+    return metrics
 }
 
 /**

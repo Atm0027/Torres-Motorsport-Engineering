@@ -19,11 +19,17 @@ export function checkCompatibility(part: Part, vehicle: Vehicle): CompatibilityR
     const warnings: string[] = []
 
     // Check mount type compatibility (for engine-related parts)
+    // Nota: supercargadores pueden instalarse en motores turbo (con advertencia), no aplicar restricción mountTypes
     if (compatibility.mountTypes.length > 0) {
         if (!compatibility.mountTypes.includes(baseSpecs.engine.type)) {
-            return {
-                compatible: false,
-                reason: `Este componente no es compatible con motores ${baseSpecs.engine.type}. Compatible con: ${compatibility.mountTypes.join(', ')}`,
+            // Excepción: superchargers en motores turbo generan advertencia, no incompatibilidad
+            if (part.category === 'supercharger' && !baseSpecs.engine.naturallyAspirated) {
+                warnings.push('Motor turbo de fábrica. Twin-charging (turbo + supercharger) es técnicamente posible pero complejo')
+            } else {
+                return {
+                    compatible: false,
+                    reason: `Este componente no es compatible con motores ${baseSpecs.engine.type}. Compatible con: ${compatibility.mountTypes.join(', ')}`,
+                }
             }
         }
     }
@@ -108,18 +114,22 @@ export function checkCompatibility(part: Part, vehicle: Vehicle): CompatibilityR
         }
     }
 
-    // Check for turbo + supercharger conflict
+    // Check for turbo + supercharger twin-charging (advertencia, no incompatibilidad)
     if (part.category === 'turbo') {
         const hasSupercharger = installedParts.some(ip => ip.part.category === 'supercharger')
         if (hasSupercharger) {
-            warnings.push('Ya tienes un supercargador instalado. Usar ambos sistemas es poco común y puede causar problemas de fiabilidad')
+            warnings.push('Ya tienes un supercargador instalado. Twin-charging (turbo + supercharger) es técnicamente posible pero complejo y poco común')
         }
     }
 
     if (part.category === 'supercharger') {
         const hasTurbo = installedParts.some(ip => ip.part.category === 'turbo')
         if (hasTurbo) {
-            warnings.push('Ya tienes un turbo instalado. Usar ambos sistemas es poco común y puede causar problemas de fiabilidad')
+            warnings.push('Ya tienes un turbo instalado. Twin-charging (turbo + supercharger) es técnicamente posible pero complejo y poco común')
+        }
+        // Si es motor turbo de fábrica (no instalado por usuario), también advertir
+        if (!baseSpecs.engine.naturallyAspirated && !hasTurbo) {
+            warnings.push('Motor turbo de fábrica. Twin-charging (turbo + supercharger) es técnicamente posible pero complejo')
         }
     }
 
@@ -136,12 +146,38 @@ export function checkCompatibility(part: Part, vehicle: Vehicle): CompatibilityR
 
 /**
  * Get all compatible parts for a vehicle from a catalog
+ * Optimizado para usar Sets donde sea posible
  */
 export function filterCompatibleParts(parts: Part[], vehicle: Vehicle): Part[] {
-    return parts.filter(part => checkCompatibility(part, vehicle).compatible)
-}
+    // Pre-calcular valores del vehículo para evitar accesos repetidos
+    const { baseSpecs } = vehicle
 
-/**
+    return parts.filter(part => {
+        // Verificación rápida de compatibilidad básica
+        const { compatibility } = part
+
+        // Check mount type (más común)
+        if (compatibility.mountTypes.length > 0 &&
+            !compatibility.mountTypes.includes(baseSpecs.engine.type)) {
+            return false
+        }
+
+        // Check drivetrain
+        if (compatibility.drivetrains.length > 0 &&
+            !compatibility.drivetrains.includes(baseSpecs.drivetrain)) {
+            return false
+        }
+
+        // Check engine layout
+        if (compatibility.engineLayouts.length > 0 &&
+            !compatibility.engineLayouts.includes(baseSpecs.engineLayout)) {
+            return false
+        }
+
+        // Full compatibility check for complex cases
+        return checkCompatibility(part, vehicle).compatible
+    })
+}/**
  * Get parts that would become incompatible if a specific part is removed
  */
 export function getDependentParts(partId: string, vehicle: Vehicle): Part[] {

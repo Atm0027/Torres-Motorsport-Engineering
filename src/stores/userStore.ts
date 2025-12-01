@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, UserStats, Achievement } from '@/types'
-import { CURRENCY, LEVELING, STORAGE_KEYS } from '@/constants'
+import { CURRENCY, STORAGE_KEYS } from '@/constants'
 
 interface UserState {
     user: User | null
@@ -16,28 +16,11 @@ interface UserState {
     updateCurrency: (amount: number) => void
     spendCurrency: (amount: number) => boolean
     addCurrency: (amount: number) => void
-    addExperience: (amount: number) => void
-    unlockPart: (partId: string) => void
     purchasePart: (partId: string, price: number) => boolean
     purchaseVehicle: (vehicleId: string, price: number) => boolean
     unlockAchievement: (achievement: Achievement) => void
     updateStats: (stats: Partial<UserStats>) => void
     logout: () => void
-}
-
-// Calculate level from total XP
-function calculateLevel(experience: number): number {
-    let level = 1
-    let xpRequired: number = LEVELING.BASE_XP
-    let totalXp = 0
-
-    while (totalXp + xpRequired <= experience && level < LEVELING.MAX_LEVEL) {
-        totalXp += xpRequired
-        level++
-        xpRequired = Math.floor(LEVELING.BASE_XP * Math.pow(LEVELING.XP_MULTIPLIER, level - 1))
-    }
-
-    return level
 }
 
 // Create default user
@@ -47,13 +30,10 @@ function createDefaultUser(username: string = 'Ingeniero', email: string = 'inge
         username,
         email,
         createdAt: new Date(),
-        level: 1,
-        experience: 0,
         currency: CURRENCY.STARTING_BALANCE,
         premiumCurrency: 0,
         ownedVehicles: ['nissan-skyline-r34'], // Starting vehicle
         ownedParts: [],
-        unlockedParts: [],
         achievements: [],
         stats: {
             totalBuilds: 0,
@@ -177,44 +157,19 @@ export const useUserStore = create<UserState>()(
                 })
             },
 
-            addExperience: (amount) => {
-                const { user } = get()
-                if (!user) return
-
-                const newExperience = user.experience + amount
-                const newLevel = calculateLevel(newExperience)
-
-                set({
-                    user: {
-                        ...user,
-                        experience: newExperience,
-                        level: newLevel,
-                    },
-                })
-            },
-
-            unlockPart: (partId) => {
-                const { user } = get()
-                if (!user || user.unlockedParts.includes(partId)) return
-
-                set({
-                    user: {
-                        ...user,
-                        unlockedParts: [...user.unlockedParts, partId],
-                    },
-                })
-            },
-
             purchasePart: (partId, price) => {
                 const { user, updateCurrency } = get()
                 if (!user || user.currency < price) return false
                 if (user.ownedParts.includes(partId)) return false
 
                 updateCurrency(-price)
+                const currentUser = get().user
+                if (!currentUser) return false
+
                 set({
                     user: {
-                        ...get().user!,
-                        ownedParts: [...get().user!.ownedParts, partId],
+                        ...currentUser,
+                        ownedParts: [...currentUser.ownedParts, partId],
                     },
                 })
                 return true
@@ -226,17 +181,20 @@ export const useUserStore = create<UserState>()(
                 if (user.ownedVehicles.includes(vehicleId)) return false
 
                 updateCurrency(-price)
+                const currentUser = get().user
+                if (!currentUser) return false
+
                 set({
                     user: {
-                        ...get().user!,
-                        ownedVehicles: [...get().user!.ownedVehicles, vehicleId],
+                        ...currentUser,
+                        ownedVehicles: [...currentUser.ownedVehicles, vehicleId],
                     },
                 })
                 return true
             },
 
             unlockAchievement: (achievement) => {
-                const { user, addExperience, updateCurrency } = get()
+                const { user, updateCurrency } = get()
                 if (!user) return
 
                 const existingIndex = user.achievements.findIndex(a => a.id === achievement.id)
@@ -259,10 +217,7 @@ export const useUserStore = create<UserState>()(
                     },
                 })
 
-                // Apply rewards
-                if (achievement.reward.experience) {
-                    addExperience(achievement.reward.experience)
-                }
+                // Apply currency reward
                 if (achievement.reward.currency) {
                     updateCurrency(achievement.reward.currency)
                 }

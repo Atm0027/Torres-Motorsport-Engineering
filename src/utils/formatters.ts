@@ -1,12 +1,42 @@
 // ============================================
 // TORRES MOTORSPORT ENGINEERING - FORMATTERS
+// Optimizado con caché de formatters para mejor rendimiento
 // ============================================
+
+// Caché de formatters Intl para evitar crear instancias repetidas
+const formatterCache = new Map<string, Intl.NumberFormat>()
+
+function getFormatter(key: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+    let formatter = formatterCache.get(key)
+    if (!formatter) {
+        formatter = new Intl.NumberFormat('es-ES', options)
+        formatterCache.set(key, formatter)
+    }
+    return formatter
+}
+
+// Pre-crear formatters más usados
+const currencyFormatter = getFormatter('currency-USD', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+})
+
+const numberFormatter = getFormatter('number-0', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+})
 
 /**
  * Format currency with proper locale and symbol
  */
 export function formatCurrency(amount: number, currency = 'USD'): string {
-    return new Intl.NumberFormat('es-ES', {
+    if (currency === 'USD') {
+        return currencyFormatter.format(amount)
+    }
+    const key = `currency-${currency}`
+    return getFormatter(key, {
         style: 'currency',
         currency,
         minimumFractionDigits: 0,
@@ -18,7 +48,11 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
  * Format a number with thousands separators
  */
 export function formatNumber(value: number, decimals = 0): string {
-    return new Intl.NumberFormat('es-ES', {
+    if (decimals === 0) {
+        return numberFormatter.format(value)
+    }
+    const key = `number-${decimals}`
+    return getFormatter(key, {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     }).format(value)

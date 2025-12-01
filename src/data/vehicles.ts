@@ -68,7 +68,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 280, torque: 392, weight: 1560 },
         livery: { ...defaultLivery, primaryColor: '#1a365d' },
         imageUrl: '/vehicles/r34.jpg',
-        unlockLevel: 1,
     },
     {
         id: 'toyota-supra-a80',
@@ -105,7 +104,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 320, torque: 440, weight: 1510 },
         livery: { ...defaultLivery, primaryColor: '#dc2626' },
         imageUrl: '/vehicles/supra.jpg',
-        unlockLevel: 5,
     },
     {
         id: 'mazda-rx7-fd',
@@ -142,7 +140,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 280, torque: 314, weight: 1280 },
         livery: { ...defaultLivery, primaryColor: '#fbbf24' },
         imageUrl: '/vehicles/rx7.jpg',
-        unlockLevel: 8,
     },
     {
         id: 'honda-nsx-na1',
@@ -179,7 +176,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 290, torque: 304, weight: 1230 },
         livery: { ...defaultLivery, primaryColor: '#dc2626' },
         imageUrl: '/vehicles/nsx.jpg',
-        unlockLevel: 12,
     },
     {
         id: 'mitsubishi-evo-ix',
@@ -216,7 +212,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 286, torque: 400, weight: 1410 },
         livery: { ...defaultLivery, primaryColor: '#f8fafc' },
         imageUrl: '/vehicles/evo.jpg',
-        unlockLevel: 3,
     },
     {
         id: 'subaru-impreza-sti',
@@ -253,7 +248,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 280, torque: 392, weight: 1470 },
         livery: { ...defaultLivery, primaryColor: '#1d4ed8' },
         imageUrl: '/vehicles/sti.jpg',
-        unlockLevel: 2,
     },
 
     // ===============================
@@ -294,7 +288,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 360, torque: 370, weight: 1385 },
         livery: { ...defaultLivery, primaryColor: '#f8fafc' },
         imageUrl: '/vehicles/m3-e46.jpg',
-        unlockLevel: 10,
     },
     {
         id: 'porsche-911-gt3-997',
@@ -331,7 +324,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 450, torque: 430, weight: 1370 },
         livery: { ...defaultLivery, primaryColor: '#22c55e', accentColor: '#f97316' },
         imageUrl: '/vehicles/gt3.jpg',
-        unlockLevel: 18,
     },
     {
         id: 'mercedes-amg-gtr',
@@ -368,7 +360,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 577, torque: 700, weight: 1630 },
         livery: { ...defaultLivery, primaryColor: '#16a34a' },
         imageUrl: '/vehicles/amg-gtr.jpg',
-        unlockLevel: 20,
     },
 
     // ===============================
@@ -409,7 +400,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 760, torque: 847, weight: 1916 },
         livery: { ...defaultLivery, primaryColor: '#1e40af' },
         imageUrl: '/vehicles/gt500.jpg',
-        unlockLevel: 15,
     },
     {
         id: 'chevrolet-camaro-zl1',
@@ -446,7 +436,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 650, torque: 881, weight: 1747 },
         livery: { ...defaultLivery, primaryColor: '#18181b' },
         imageUrl: '/vehicles/zl1.jpg',
-        unlockLevel: 12,
     },
     {
         id: 'dodge-challenger-hellcat',
@@ -483,7 +472,6 @@ export const vehiclesDatabase: Vehicle[] = [
         currentMetrics: { ...defaultMetrics, horsepower: 717, torque: 881, weight: 2028 },
         livery: { ...defaultLivery, primaryColor: '#7c2d12' },
         imageUrl: '/vehicles/hellcat.jpg',
-        unlockLevel: 10,
     },
 ]
 
