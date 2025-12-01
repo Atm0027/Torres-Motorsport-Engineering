@@ -220,6 +220,169 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
             wheels: '#18181b',
             calipers: '#dc2626'
         }
+    },
+    'honda-nsx': {
+        id: 'honda-nsx',
+        name: 'NSX Type R',
+        manufacturer: 'Honda',
+        year: 2019,
+        dimensions: {
+            length: 4490,
+            width: 1940,
+            height: 1215,
+            wheelbase: 2630
+        },
+        modelUrl: '/models/vehicles/honda-nsx/base.glb',
+        blueprints: {
+            side: '/blueprints/honda-nsx/side.svg',
+            front: '/blueprints/honda-nsx/front.svg',
+            rear: '/blueprints/honda-nsx/rear.svg',
+            top: '/blueprints/honda-nsx/top.svg'
+        },
+        slots: {
+            'wheel_fl': {
+                position: [-0.85, 0.33, 1.32],
+                rotation: [0, 0, 0],
+                boltPattern: '5x120',
+                stockSize: 19
+            },
+            'wheel_fr': {
+                position: [0.85, 0.33, 1.32],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x120',
+                stockSize: 19
+            },
+            'wheel_rl': {
+                position: [-0.85, 0.33, -1.30],
+                rotation: [0, 0, 0],
+                boltPattern: '5x120',
+                stockSize: 20
+            },
+            'wheel_rr': {
+                position: [0.85, 0.33, -1.30],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x120',
+                stockSize: 20
+            }
+        },
+        defaultColors: {
+            body: '#dc2626',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#dc2626'
+        }
+    },
+    'mitsubishi-evo-ix': {
+        id: 'mitsubishi-evo-ix',
+        name: 'Lancer Evolution IX',
+        manufacturer: 'Mitsubishi',
+        year: 2006,
+        dimensions: {
+            length: 4490,
+            width: 1770,
+            height: 1450,
+            wheelbase: 2625
+        },
+        modelUrl: '/models/vehicles/mitsubishi-evo-ix/base.glb',
+        blueprints: {
+            side: '/blueprints/mitsubishi-evo-ix/side.svg',
+            front: '/blueprints/mitsubishi-evo-ix/front.svg',
+            rear: '/blueprints/mitsubishi-evo-ix/rear.svg',
+            top: '/blueprints/mitsubishi-evo-ix/top.svg'
+        },
+        slots: {
+            'aero_wing': {
+                position: [0, 1.45, -2.1],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.76, 0.33, 1.31],
+                rotation: [0, 0, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            },
+            'wheel_fr': {
+                position: [0.76, 0.33, 1.31],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            },
+            'wheel_rl': {
+                position: [-0.76, 0.33, -1.31],
+                rotation: [0, 0, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            },
+            'wheel_rr': {
+                position: [0.76, 0.33, -1.31],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            }
+        },
+        defaultColors: {
+            body: '#ffffff',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#dc2626'
+        }
+    },
+    'subaru-impreza-sti': {
+        id: 'subaru-impreza-sti',
+        name: 'Impreza WRX STI',
+        manufacturer: 'Subaru',
+        year: 2006,
+        dimensions: {
+            length: 4465,
+            width: 1740,
+            height: 1425,
+            wheelbase: 2540
+        },
+        modelUrl: '/models/vehicles/subaru-impreza-sti/base.glb',
+        blueprints: {
+            side: '/blueprints/subaru-impreza-sti/side.svg',
+            front: '/blueprints/subaru-impreza-sti/front.svg',
+            rear: '/blueprints/subaru-impreza-sti/rear.svg',
+            top: '/blueprints/subaru-impreza-sti/top.svg'
+        },
+        slots: {
+            'aero_wing': {
+                position: [0, 1.43, -2.0],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.74, 0.33, 1.27],
+                rotation: [0, 0, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            },
+            'wheel_fr': {
+                position: [0.74, 0.33, 1.27],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            },
+            'wheel_rl': {
+                position: [-0.74, 0.33, -1.27],
+                rotation: [0, 0, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            },
+            'wheel_rr': {
+                position: [0.74, 0.33, -1.27],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x114.3',
+                stockSize: 17
+            }
+        },
+        defaultColors: {
+            body: '#2563eb',
+            interior: '#1e293b',
+            wheels: '#fbbf24',
+            calipers: '#dc2626'
+        }
     }
 }
 

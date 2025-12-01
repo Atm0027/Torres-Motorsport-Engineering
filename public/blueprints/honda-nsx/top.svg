@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" fill="none" stroke="#00d4ff" stroke-width="1.5">
+  <!-- Honda NSX NA1 - Vista Superior -->
+  <defs>
+    <pattern id="grid-nsx-top" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e3a5f" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  
+  <rect width="800" height="400" fill="#0a0f1a"/>
+  <rect width="800" height="400" fill="url(#grid-nsx-top)"/>
+  
+  <!-- Main body outline - NSX's wide mid-engine shape -->
+  <path d="M 140 200
+           Q 140 140 180 120 L 280 95 L 400 85 L 520 95 L 620 120 Q 660 140 660 200
+           Q 660 260 620 280 L 520 305 L 400 315 L 280 305 L 180 280 Q 140 260 140 200 Z"
+        stroke-width="2"/>
+  
+  <!-- Windshield - forward cabin position -->
+  <path d="M 290 130 Q 400 115 510 130 L 530 175 L 270 175 Z" fill="#1a365d" fill-opacity="0.3" stroke-width="1.5"/>
+  <path d="M 290 270 Q 400 285 510 270 L 530 225 L 270 225 Z" fill="#1a365d" fill-opacity="0.3" stroke-width="1.5"/>
+  
+  <!-- Cabin/roof -->
+  <path d="M 280 175 L 530 175 L 540 200 L 530 225 L 280 225 L 270 200 Z" stroke-width="1"/>
+  
+  <!-- Engine cover (behind cabin) -->
+  <path d="M 540 165 L 620 180 L 620 220 L 540 235 Z" fill="#0a0f1a" stroke-width="1"/>
+  <line x1="560" y1="172" x2="600" y2="182" stroke-width="0.5"/>
+  <line x1="560" y1="184" x2="600" y2="192" stroke-width="0.5"/>
+  <line x1="560" y1="200" x2="600" y2="200" stroke-width="0.5"/>
+  <line x1="560" y1="216" x2="600" y2="208" stroke-width="0.5"/>
+  <line x1="560" y1="228" x2="600" y2="218" stroke-width="0.5"/>
+  
+  <!-- Hood lines -->
+  <line x1="180" y1="180" x2="265" y2="170"/>
+  <line x1="180" y1="220" x2="265" y2="230"/>
+  
+  <!-- Pop-up headlight areas -->
+  <ellipse cx="200" cy="160" rx="22" ry="15" fill="#0a0f1a" stroke-width="1"/>
+  <ellipse cx="200" cy="240" rx="22" ry="15" fill="#0a0f1a" stroke-width="1"/>
+  
+  <!-- Side air intakes -->
+  <path d="M 490 140 L 530 145 L 530 165 L 490 158 Z" fill="#1a365d" fill-opacity="0.3"/>
+  <path d="M 490 260 L 530 255 L 530 235 L 490 242 Z" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Side mirrors -->
+  <ellipse cx="295" cy="130" rx="12" ry="8"/>
+  <ellipse cx="295" cy="270" rx="12" ry="8"/>
+  
+  <!-- Wheels -->
+  <ellipse cx="195" cy="140" rx="10" ry="28" stroke-width="2"/>
+  <ellipse cx="195" cy="260" rx="10" ry="28" stroke-width="2"/>
+  <ellipse cx="600" cy="140" rx="12" ry="32" stroke-width="2"/>
+  <ellipse cx="600" cy="260" rx="12" ry="32" stroke-width="2"/>
+  
+  <!-- Center line -->
+  <line x1="140" y1="200" x2="660" y2="200" stroke-dasharray="8,4" opacity="0.5"/>
+  
+  <!-- Dimensions -->
+  <g stroke="#00d4ff" stroke-width="0.5" opacity="0.7">
+    <line x1="140" y1="350" x2="660" y2="350"/>
+    <line x1="140" y1="345" x2="140" y2="355"/>
+    <line x1="660" y1="345" x2="660" y2="355"/>
+    <text x="400" y="365" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace">4430 mm</text>
+    
+    <line x1="720" y1="85" x2="720" y2="315"/>
+    <line x1="715" y1="85" x2="725" y2="85"/>
+    <line x1="715" y1="315" x2="725" y2="315"/>
+    <text x="750" y="205" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace" transform="rotate(90,750,205)">1810 mm</text>
+  </g>
+  
+  <text x="50" y="30" fill="#00d4ff" font-size="14" font-family="monospace" font-weight="bold">HONDA NSX TYPE R</text>
+  <text x="50" y="45" fill="#64748b" font-size="10" font-family="monospace">Vista Superior | NA1 | 1992</text>
+</svg>

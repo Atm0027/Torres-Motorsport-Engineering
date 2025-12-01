@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" fill="none" stroke="#00d4ff" stroke-width="1.5">
+  <!-- Toyota Supra A80 - Vista Lateral -->
+  <defs>
+    <pattern id="grid-supra-side" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e3a5f" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  
+  <rect width="800" height="300" fill="#0a0f1a"/>
+  <rect width="800" height="300" fill="url(#grid-supra-side)"/>
+  
+  <!-- Body - Supra's distinctive long hood, short deck -->
+  <path d="M 100 185 
+           L 130 180 L 160 170 L 200 155 L 280 140 L 340 125 L 380 115 
+           L 440 110 L 500 115 L 550 125 L 600 145 L 650 165 L 680 180 L 700 190
+           L 700 195 L 100 195 L 100 185 Z" 
+        stroke-width="2"/>
+  
+  <!-- Roof line - Supra's distinctive fastback -->
+  <path d="M 380 115 L 430 108 L 520 110 L 580 130 L 620 150" stroke-width="1.5"/>
+  
+  <!-- Windows -->
+  <path d="M 385 117 L 430 110 L 500 112 L 500 140 L 385 140 Z" fill="#1a365d" fill-opacity="0.3"/>
+  <path d="M 510 115 L 575 132 L 575 155 L 510 140 Z" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Pop-up headlight housings -->
+  <rect x="140" y="155" width="45" height="20" rx="3" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Taillights -->
+  <rect x="660" y="165" width="30" height="15" rx="2" fill="#dc2626" fill-opacity="0.4"/>
+  
+  <!-- Side intake/vent -->
+  <path d="M 250 165 L 290 160 L 290 175 L 250 175 Z" stroke-width="1"/>
+  
+  <!-- Door line -->
+  <line x1="400" y1="140" x2="400" y2="185"/>
+  
+  <!-- Front wheel -->
+  <circle cx="210" cy="195" r="40" stroke-width="2"/>
+  <circle cx="210" cy="195" r="26" stroke-width="1"/>
+  <circle cx="210" cy="195" r="12" stroke-width="1"/>
+  <line x1="210" y1="168" x2="210" y2="222"/>
+  <line x1="183" y1="195" x2="237" y2="195"/>
+  
+  <!-- Rear wheel -->
+  <circle cx="590" cy="195" r="40" stroke-width="2"/>
+  <circle cx="590" cy="195" r="26" stroke-width="1"/>
+  <circle cx="590" cy="195" r="12" stroke-width="1"/>
+  <line x1="590" y1="168" x2="590" y2="222"/>
+  <line x1="563" y1="195" x2="617" y2="195"/>
+  
+  <!-- Rear wing -->
+  <path d="M 620 95 L 680 95 L 685 90 L 690 95 L 690 102 L 620 102 Z" stroke-width="1.5"/>
+  <line x1="640" y1="102" x2="640" y2="118"/>
+  <line x1="670" y1="102" x2="670" y2="118"/>
+  
+  <!-- Dimension lines -->
+  <g stroke="#00d4ff" stroke-width="0.5" opacity="0.7">
+    <line x1="100" y1="250" x2="700" y2="250"/>
+    <line x1="100" y1="245" x2="100" y2="255"/>
+    <line x1="700" y1="245" x2="700" y2="255"/>
+    <text x="400" y="265" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace">4514 mm</text>
+    
+    <line x1="210" y1="240" x2="590" y2="240" stroke-dasharray="4,2"/>
+    <text x="400" y="238" fill="#00d4ff" font-size="8" text-anchor="middle" font-family="monospace">2550 mm (batalla)</text>
+  </g>
+  
+  <text x="50" y="30" fill="#00d4ff" font-size="14" font-family="monospace" font-weight="bold">TOYOTA SUPRA RZ</text>
+  <text x="50" y="45" fill="#64748b" font-size="10" font-family="monospace">Vista Lateral | JZA80 | 1998</text>
+</svg>

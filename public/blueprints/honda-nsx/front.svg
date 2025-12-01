@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" fill="none" stroke="#00d4ff" stroke-width="1.5">
+  <!-- Honda NSX NA1 - Vista Frontal -->
+  <defs>
+    <pattern id="grid-nsx-front" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e3a5f" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  
+  <rect width="800" height="300" fill="#0a0f1a"/>
+  <rect width="800" height="300" fill="url(#grid-nsx-front)"/>
+  
+  <!-- Main body outline - low and wide -->
+  <path d="M 250 215
+           L 250 160 L 265 130 L 300 105 L 350 90 L 400 85 L 450 90 L 500 105 L 535 130 L 550 160 L 550 215
+           L 540 225 L 260 225 L 250 215 Z"
+        stroke-width="2"/>
+  
+  <!-- Hood - very low -->
+  <path d="M 280 120 Q 400 100 520 120" stroke-width="1.5"/>
+  
+  <!-- Pop-up headlights -->
+  <ellipse cx="310" cy="118" rx="25" ry="12" fill="#1a365d" fill-opacity="0.3"/>
+  <ellipse cx="490" cy="118" rx="25" ry="12" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Windshield - steeply raked -->
+  <path d="M 320 92 L 350 75 L 450 75 L 480 92 L 480 115 L 320 115 Z" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Front air dam / bumper -->
+  <rect x="290" y="195" width="220" height="20" rx="3"/>
+  
+  <!-- Front intakes -->
+  <rect x="310" y="185" width="50" height="12" rx="2" fill="#1a365d" fill-opacity="0.3"/>
+  <rect x="375" y="185" width="50" height="12" rx="2" fill="#1a365d" fill-opacity="0.3"/>
+  <rect x="440" y="185" width="50" height="12" rx="2" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Turn signals -->
+  <path d="M 270 155 L 295 150 L 295 165 L 270 170 Z" fill="#f59e0b" fill-opacity="0.3"/>
+  <path d="M 530 155 L 505 150 L 505 165 L 530 170 Z" fill="#f59e0b" fill-opacity="0.3"/>
+  
+  <!-- Fender curves -->
+  <path d="M 250 180 Q 270 165 290 180" stroke-width="1.5"/>
+  <path d="M 550 180 Q 530 165 510 180" stroke-width="1.5"/>
+  
+  <!-- Front wheels -->
+  <ellipse cx="275" cy="225" rx="20" ry="10" stroke-width="2"/>
+  <ellipse cx="525" cy="225" rx="20" ry="10" stroke-width="2"/>
+  
+  <!-- Dimensions -->
+  <g stroke="#00d4ff" stroke-width="0.5" opacity="0.7">
+    <line x1="250" y1="255" x2="550" y2="255"/>
+    <line x1="250" y1="250" x2="250" y2="260"/>
+    <line x1="550" y1="250" x2="550" y2="260"/>
+    <text x="400" y="270" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace">1810 mm</text>
+    
+    <line x1="590" y1="85" x2="590" y2="225"/>
+    <line x1="585" y1="85" x2="595" y2="85"/>
+    <line x1="585" y1="225" x2="595" y2="225"/>
+    <text x="620" y="160" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace" transform="rotate(90,620,160)">1170 mm</text>
+  </g>
+  
+  <text x="50" y="30" fill="#00d4ff" font-size="14" font-family="monospace" font-weight="bold">HONDA NSX TYPE R</text>
+  <text x="50" y="45" fill="#64748b" font-size="10" font-family="monospace">Vista Frontal | NA1 | 1992</text>
+</svg>

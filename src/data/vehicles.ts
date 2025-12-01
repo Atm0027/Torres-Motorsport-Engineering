@@ -142,8 +142,8 @@ export const vehiclesDatabase: Vehicle[] = [
         imageUrl: '/vehicles/rx7.jpg',
     },
     {
-        id: 'honda-nsx-na1',
-        name: 'NSX Type R',
+        id: 'honda-nsx',
+        name: 'NSX Type R NA1',
         manufacturer: 'Honda',
         year: 1992,
         bodyStyle: 'coupe',

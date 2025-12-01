@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" fill="none" stroke="#00d4ff" stroke-width="1.5">
+  <!-- Subaru Impreza WRX STI - Vista Trasera -->
+  <defs>
+    <pattern id="grid-sti-rear" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e3a5f" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  
+  <rect width="800" height="300" fill="#0a0f1a"/>
+  <rect width="800" height="300" fill="url(#grid-sti-rear)"/>
+  
+  <!-- Rear wing - STI wing from behind -->
+  <path d="M 225 60 L 575 60 L 580 75 L 220 75 Z" stroke-width="2" fill="#0a0f1a"/>
+  <rect x="275" y="75" width="18" height="28" stroke-width="2"/>
+  <rect x="507" y="75" width="18" height="28" stroke-width="2"/>
+  
+  <!-- Main body outline -->
+  <path d="M 245 215
+           L 245 125 L 270 100 L 320 88 L 400 82 L 480 88 L 530 100 L 555 125 L 555 215
+           L 545 225 L 255 225 L 245 215 Z"
+        stroke-width="2"/>
+  
+  <!-- Trunk lid -->
+  <path d="M 280 95 Q 400 85 520 95" stroke-width="1.5"/>
+  
+  <!-- Rear window -->
+  <path d="M 295 98 L 325 88 L 475 88 L 505 98 L 505 132 L 295 132 Z" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Taillights - STI style -->
+  <rect x="260" y="145" width="60" height="40" rx="4" fill="#dc2626" fill-opacity="0.4"/>
+  <line x1="280" y1="148" x2="280" y2="182" stroke-width="1"/>
+  <line x1="300" y1="148" x2="300" y2="182" stroke-width="1"/>
+  
+  <rect x="480" y="145" width="60" height="40" rx="4" fill="#dc2626" fill-opacity="0.4"/>
+  <line x1="500" y1="148" x2="500" y2="182" stroke-width="1"/>
+  <line x1="520" y1="148" x2="520" y2="182" stroke-width="1"/>
+  
+  <!-- Center reflector -->
+  <rect x="340" y="160" width="120" height="10" fill="#dc2626" fill-opacity="0.2"/>
+  
+  <!-- Rear bumper -->
+  <rect x="260" y="195" width="280" height="18" rx="3"/>
+  
+  <!-- Diffuser/exhaust area -->
+  <rect x="300" y="200" width="40" height="10" fill="#1a365d" fill-opacity="0.3"/>
+  <rect x="380" y="200" width="40" height="10" fill="#1a365d" fill-opacity="0.3"/>
+  <rect x="460" y="200" width="40" height="10" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Exhaust tips - quad tips -->
+  <ellipse cx="315" cy="218" rx="10" ry="5" fill="#1a365d" fill-opacity="0.3"/>
+  <ellipse cx="340" cy="218" rx="10" ry="5" fill="#1a365d" fill-opacity="0.3"/>
+  <ellipse cx="460" cy="218" rx="10" ry="5" fill="#1a365d" fill-opacity="0.3"/>
+  <ellipse cx="485" cy="218" rx="10" ry="5" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- License plate -->
+  <rect x="355" y="165" width="90" height="25" rx="2"/>
+  
+  <!-- Rear wheels -->
+  <ellipse cx="275" cy="225" rx="24" ry="10" stroke-width="2"/>
+  <ellipse cx="525" cy="225" rx="24" ry="10" stroke-width="2"/>
+  
+  <!-- Dimensions -->
+  <g stroke="#00d4ff" stroke-width="0.5" opacity="0.7">
+    <line x1="245" y1="255" x2="555" y2="255"/>
+    <line x1="245" y1="250" x2="245" y2="260"/>
+    <line x1="555" y1="250" x2="555" y2="260"/>
+    <text x="400" y="270" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace">1740 mm</text>
+  </g>
+  
+  <text x="50" y="30" fill="#00d4ff" font-size="14" font-family="monospace" font-weight="bold">SUBARU IMPREZA WRX STI</text>
+  <text x="50" y="45" fill="#64748b" font-size="10" font-family="monospace">Vista Trasera | GDB | 2004</text>
+</svg>

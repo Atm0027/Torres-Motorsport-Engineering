@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" fill="none" stroke="#00d4ff" stroke-width="1.5">
+  <!-- Mazda RX-7 FD - Vista Trasera -->
+  <defs>
+    <pattern id="grid-rx7-rear" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e3a5f" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  
+  <rect width="800" height="300" fill="#0a0f1a"/>
+  <rect width="800" height="300" fill="url(#grid-rx7-rear)"/>
+  
+  <!-- Main body outline -->
+  <path d="M 260 210
+           L 260 130 L 290 95 L 340 82 L 400 78 L 460 82 L 510 95 L 540 130 L 540 210
+           L 530 220 L 270 220 L 260 210 Z"
+        stroke-width="2"/>
+  
+  <!-- Rear hatch -->
+  <path d="M 290 95 Q 400 85 510 95" stroke-width="1.5"/>
+  
+  <!-- Rear window - fastback style -->
+  <path d="M 310 98 L 330 88 L 470 88 L 490 98 L 490 130 L 310 130 Z" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Signature round taillights -->
+  <circle cx="300" cy="165" r="25" fill="#dc2626" fill-opacity="0.3" stroke-width="2"/>
+  <circle cx="300" cy="165" r="18" stroke-width="1"/>
+  <circle cx="300" cy="165" r="8" stroke-width="1"/>
+  
+  <circle cx="500" cy="165" r="25" fill="#dc2626" fill-opacity="0.3" stroke-width="2"/>
+  <circle cx="500" cy="165" r="18" stroke-width="1"/>
+  <circle cx="500" cy="165" r="8" stroke-width="1"/>
+  
+  <!-- Center light bar -->
+  <rect x="340" y="160" width="120" height="12" rx="2" fill="#dc2626" fill-opacity="0.2"/>
+  
+  <!-- Rear bumper -->
+  <rect x="280" y="195" width="240" height="15" rx="3"/>
+  
+  <!-- Exhaust outlets -->
+  <ellipse cx="310" cy="212" rx="12" ry="6" fill="#1a365d" fill-opacity="0.3"/>
+  <ellipse cx="490" cy="212" rx="12" ry="6" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Rear fender curves -->
+  <path d="M 260 180 Q 275 165 290 180" stroke-width="1.5"/>
+  <path d="M 540 180 Q 525 165 510 180" stroke-width="1.5"/>
+  
+  <!-- Rear wheels -->
+  <ellipse cx="280" cy="220" rx="20" ry="10" stroke-width="2"/>
+  <ellipse cx="520" cy="220" rx="20" ry="10" stroke-width="2"/>
+  
+  <!-- License plate area -->
+  <rect x="360" y="180" width="80" height="25" rx="2"/>
+  
+  <!-- Dimensions -->
+  <g stroke="#00d4ff" stroke-width="0.5" opacity="0.7">
+    <line x1="260" y1="250" x2="540" y2="250"/>
+    <line x1="260" y1="245" x2="260" y2="255"/>
+    <line x1="540" y1="245" x2="540" y2="255"/>
+    <text x="400" y="265" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace">1760 mm</text>
+  </g>
+  
+  <text x="50" y="30" fill="#00d4ff" font-size="14" font-family="monospace" font-weight="bold">MAZDA RX-7 SPIRIT R</text>
+  <text x="50" y="45" fill="#64748b" font-size="10" font-family="monospace">Vista Trasera | FD3S | 2002</text>
+</svg>

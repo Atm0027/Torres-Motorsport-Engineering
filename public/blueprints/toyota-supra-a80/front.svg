@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" fill="none" stroke="#00d4ff" stroke-width="1.5">
+  <!-- Toyota Supra A80 - Vista Frontal -->
+  <defs>
+    <pattern id="grid-supra-front" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e3a5f" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  
+  <rect width="800" height="300" fill="#0a0f1a"/>
+  <rect width="800" height="300" fill="url(#grid-supra-front)"/>
+  
+  <!-- Body -->
+  <path d="M 240 220 
+           L 240 170 L 260 140 L 300 110 L 400 90 L 500 110 L 540 140 L 560 170 L 560 220
+           L 540 225 L 260 225 L 240 220 Z" 
+        stroke-width="2"/>
+  
+  <!-- Hood curve - Supra's rounded front -->
+  <path d="M 270 140 L 320 115 L 400 100 L 480 115 L 530 140" stroke-width="1.5"/>
+  
+  <!-- Pop-up headlights (up position) -->
+  <rect x="270" y="120" width="50" height="30" rx="5" stroke-width="2"/>
+  <rect x="480" y="120" width="50" height="30" rx="5" stroke-width="2"/>
+  <!-- Headlight inner -->
+  <circle cx="295" cy="135" r="10" fill="#1a365d" fill-opacity="0.4"/>
+  <circle cx="505" cy="135" r="10" fill="#1a365d" fill-opacity="0.4"/>
+  
+  <!-- Windshield -->
+  <path d="M 305 130 L 350 105 L 400 98 L 450 105 L 495 130 L 485 140 L 315 140 Z" 
+        fill="#1a365d" fill-opacity="0.3" stroke-width="1"/>
+  
+  <!-- Front bumper/grille -->
+  <path d="M 280 180 L 520 180 L 530 200 L 270 200 Z" stroke-width="1.5"/>
+  <!-- Grille openings -->
+  <rect x="300" y="182" width="80" height="15" rx="2"/>
+  <rect x="420" y="182" width="80" height="15" rx="2"/>
+  
+  <!-- Fog lights -->
+  <circle cx="290" cy="210" r="12" fill="#1a365d" fill-opacity="0.3"/>
+  <circle cx="510" cy="210" r="12" fill="#1a365d" fill-opacity="0.3"/>
+  
+  <!-- Front splitter -->
+  <path d="M 250 218 L 270 215 L 530 215 L 550 218" stroke-width="2"/>
+  
+  <!-- Wheels -->
+  <ellipse cx="260" cy="225" rx="35" ry="12" stroke-width="1.5"/>
+  <ellipse cx="540" cy="225" rx="35" ry="12" stroke-width="1.5"/>
+  
+  <!-- Mirrors -->
+  <rect x="232" y="135" width="15" height="8" rx="2"/>
+  <rect x="553" y="135" width="15" height="8" rx="2"/>
+  
+  <!-- Dimensions -->
+  <g stroke="#00d4ff" stroke-width="0.5" opacity="0.7">
+    <line x1="225" y1="260" x2="575" y2="260"/>
+    <line x1="225" y1="255" x2="225" y2="265"/>
+    <line x1="575" y1="255" x2="575" y2="265"/>
+    <text x="400" y="275" fill="#00d4ff" font-size="10" text-anchor="middle" font-family="monospace">1810 mm</text>
+  </g>
+  
+  <text x="50" y="30" fill="#00d4ff" font-size="14" font-family="monospace" font-weight="bold">TOYOTA SUPRA RZ</text>
+  <text x="50" y="45" fill="#64748b" font-size="10" font-family="monospace">Vista Frontal | JZA80 | 1998</text>
+</svg>

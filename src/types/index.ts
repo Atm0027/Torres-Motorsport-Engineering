@@ -471,6 +471,7 @@ export interface VehicleModelConfig {
     }
     modelUrl?: string  // URL to .glb base model
     blueprints?: {
+        full?: string   // Complete blueprint with all views
         side?: string
         front?: string
         rear?: string

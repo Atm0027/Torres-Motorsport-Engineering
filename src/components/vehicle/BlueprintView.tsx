@@ -10,6 +10,7 @@ import {
     ChevronRight
 } from 'lucide-react'
 import { Button } from '@components/ui/Button'
+import { getVehicleBlueprints } from '@/services/modelLoader'
 import type { Vehicle, BlueprintViewState, PartCategory } from '@/types'
 
 interface BlueprintViewProps {
@@ -53,8 +54,28 @@ export function BlueprintView({
 
     // Get blueprint URL based on vehicle and view
     const blueprintUrl = useMemo(() => {
-        // Try to load from public folder structure
-        return `/blueprints/${vehicle.id}/${viewState.activeView}.svg`
+        // First try to get from model config
+        const blueprints = getVehicleBlueprints(vehicle.id)
+
+        // If we have a full blueprint, use it (single image with all views)
+        if (blueprints?.full) {
+            return blueprints.full
+        }
+
+        // If we have separate views, use the current view
+        if (blueprints) {
+            const viewUrl = blueprints[viewState.activeView as keyof typeof blueprints]
+            if (viewUrl) return viewUrl
+        }
+
+        // Fallback: try common blueprint file patterns
+        const extensions = ['.jpg', '.png', '.gif', '.svg']
+        for (const ext of extensions) {
+            const url = `/blueprints/${vehicle.id}${ext}`
+            return url // Return first pattern, image onError will handle failures
+        }
+
+        return null
     }, [vehicle.id, viewState.activeView])
 
     // Handle zoom
@@ -427,19 +448,22 @@ export function BlueprintView({
                     {/* Blueprint Image or Placeholder */}
                     <g className="blueprint-content">
                         {/* Try to load actual blueprint, fallback to placeholder */}
-                        <image
-                            href={blueprintUrl}
-                            x="-200"
-                            y="-100"
-                            width="400"
-                            height="200"
-                            preserveAspectRatio="xMidYMid meet"
-                            onError={(e) => {
-                                // Hide broken image
-                                (e.target as SVGImageElement).style.display = 'none'
-                            }}
-                        />
-                        {PlaceholderBlueprint}
+                        {blueprintUrl && (
+                            <image
+                                href={blueprintUrl}
+                                x="-350"
+                                y="-175"
+                                width="700"
+                                height="350"
+                                preserveAspectRatio="xMidYMid meet"
+                                opacity="0.9"
+                                onError={(e) => {
+                                    // Hide broken image
+                                    (e.target as SVGImageElement).style.display = 'none'
+                                }}
+                            />
+                        )}
+                        {!blueprintUrl && PlaceholderBlueprint}
                     </g>
 
                     {/* Dimension annotations */}
