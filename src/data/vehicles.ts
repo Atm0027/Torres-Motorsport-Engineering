@@ -35,9 +35,9 @@ export const vehiclesDatabase: Vehicle[] = [
     // ===============================
     {
         id: 'nissan-skyline-r34',
-        name: 'Skyline GT-R V-Spec II',
+        name: 'Skyline R34 GT-R',
         manufacturer: 'Nissan',
-        year: 2002,
+        year: 1999,
         bodyStyle: 'coupe',
         basePrice: 85000,
         baseSpecs: {
@@ -71,9 +71,9 @@ export const vehiclesDatabase: Vehicle[] = [
     },
     {
         id: 'toyota-supra-a80',
-        name: 'Supra RZ',
+        name: 'Supra A80',
         manufacturer: 'Toyota',
-        year: 1998,
+        year: 1993,
         bodyStyle: 'coupe',
         basePrice: 75000,
         baseSpecs: {
@@ -107,9 +107,9 @@ export const vehiclesDatabase: Vehicle[] = [
     },
     {
         id: 'mazda-rx7-fd',
-        name: 'RX-7 Spirit R',
+        name: 'RX-7 FD',
         manufacturer: 'Mazda',
-        year: 2002,
+        year: 1992,
         bodyStyle: 'coupe',
         basePrice: 65000,
         baseSpecs: {
@@ -143,9 +143,9 @@ export const vehiclesDatabase: Vehicle[] = [
     },
     {
         id: 'honda-nsx',
-        name: 'NSX Type R NA1',
+        name: 'NSX NA1',
         manufacturer: 'Honda',
-        year: 1992,
+        year: 1990,
         bodyStyle: 'coupe',
         basePrice: 120000,
         baseSpecs: {
@@ -179,9 +179,9 @@ export const vehiclesDatabase: Vehicle[] = [
     },
     {
         id: 'mitsubishi-evo-ix',
-        name: 'Lancer Evolution IX MR',
+        name: 'Lancer Evolution IX',
         manufacturer: 'Mitsubishi',
-        year: 2006,
+        year: 2005,
         bodyStyle: 'sedan',
         basePrice: 55000,
         baseSpecs: {
@@ -217,7 +217,7 @@ export const vehiclesDatabase: Vehicle[] = [
         id: 'subaru-impreza-sti',
         name: 'Impreza WRX STI',
         manufacturer: 'Subaru',
-        year: 2006,
+        year: 2004,
         bodyStyle: 'sedan',
         basePrice: 48000,
         baseSpecs: {

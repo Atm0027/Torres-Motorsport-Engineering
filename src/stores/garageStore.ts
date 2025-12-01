@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useShallow } from 'zustand/react/shallow'
 import type { Vehicle, Part, PartCategory, GarageState, InstalledPart, TuningSettings, SavedBuild } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
 import { calculatePerformance } from '@utils/physics'
@@ -297,4 +298,49 @@ export const useGarageStore = create<GarageStoreState>()(
             }),
         }
     )
+)
+
+// =============================================================================
+// SELECTORES OPTIMIZADOS - Evitan re-renders innecesarios
+// =============================================================================
+
+// Selector para solo el vehículo actual
+export const useCurrentVehicle = () => useGarageStore((state) => state.currentVehicle)
+
+// Selector para el modo de vista
+export const useViewMode = () => useGarageStore((state) => state.viewMode)
+
+// Selector para sistema seleccionado
+export const useSelectedSystem = () => useGarageStore((state) => state.selectedSystem)
+
+// Selector para la pieza seleccionada
+export const useSelectedPart = () => useGarageStore((state) => state.selectedPart)
+
+// Selector para builds guardados
+export const useSavedBuilds = () => useGarageStore((state) => state.savedBuilds)
+
+// Selector para métricas actuales (con comparación superficial)
+export const useCurrentMetrics = () => useGarageStore(
+    useShallow((state) => state.currentVehicle?.currentMetrics)
+)
+
+// Selector para piezas instaladas
+export const useInstalledParts = () => useGarageStore(
+    useShallow((state) => state.currentVehicle?.installedParts ?? [])
+)
+
+// Selector para acciones (nunca cambian)
+export const useGarageActions = () => useGarageStore(
+    useShallow((state) => ({
+        setCurrentVehicle: state.setCurrentVehicle,
+        selectPart: state.selectPart,
+        installPart: state.installPart,
+        uninstallPart: state.uninstallPart,
+        setViewMode: state.setViewMode,
+        selectSystem: state.selectSystem,
+        saveBuild: state.saveBuild,
+        deleteBuild: state.deleteBuild,
+        loadBuild: state.loadBuild,
+        recalculateMetrics: state.recalculateMetrics,
+    }))
 )

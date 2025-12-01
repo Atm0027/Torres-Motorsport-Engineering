@@ -9,14 +9,55 @@
         content="Torres Motorsport Engineering - Simulador avanzado de modificación de vehículos con precisión de ingeniería" />
     <meta name="theme-color" content="#0f172a" />
 
-    <!-- Fonts -->
+    <!-- DNS Prefetch para recursos externos -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+
+    <!-- Preconnect para fonts (mejora TTFB) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Preload fuentes críticas -->
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@500;700&display=swap">
+
+    <!-- Fonts con display=swap para evitar FOIT -->
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
 
+    <!-- Preload de modelos 3D más comunes (se cargarán en segundo plano) -->
+    <link rel="prefetch" href="/models/vehicles/nissan-skyline-r34/base.glb" as="fetch" crossorigin>
+
     <title>Torres Motorsport Engineering</title>
+
+    <!-- Inline critical CSS para First Contentful Paint más rápido -->
+    <style>
+        /* Loading spinner crítico */
+        #root:empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #0a0e17;
+        }
+
+        #root:empty::after {
+            content: '';
+            width: 40px;
+            height: 40px;
+            border: 3px solid #1e293b;
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spinner 0.8s linear infinite;
+        }
+
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-torres-dark-900 text-torres-light-100 antialiased">

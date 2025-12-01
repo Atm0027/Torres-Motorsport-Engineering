@@ -15,9 +15,9 @@ import type {
 const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
     'nissan-skyline-r34': {
         id: 'nissan-skyline-r34',
-        name: 'Skyline GT-R V-Spec II',
+        name: 'Skyline R34 GT-R',
         manufacturer: 'Nissan',
-        year: 2002,
+        year: 1999,
         dimensions: {
             length: 4600,
             width: 1785,
@@ -96,9 +96,9 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
     },
     'toyota-supra-a80': {
         id: 'toyota-supra-a80',
-        name: 'Supra RZ',
+        name: 'Supra A80',
         manufacturer: 'Toyota',
-        year: 1998,
+        year: 1993,
         dimensions: {
             length: 4514,
             width: 1810,
@@ -162,9 +162,9 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
     },
     'mazda-rx7-fd': {
         id: 'mazda-rx7-fd',
-        name: 'RX-7 Spirit R',
+        name: 'RX-7 FD',
         manufacturer: 'Mazda',
-        year: 2002,
+        year: 1992,
         dimensions: {
             length: 4295,
             width: 1760,
@@ -223,9 +223,9 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
     },
     'honda-nsx': {
         id: 'honda-nsx',
-        name: 'NSX Type R',
+        name: 'NSX NA1',
         manufacturer: 'Honda',
-        year: 2019,
+        year: 1990,
         dimensions: {
             length: 4490,
             width: 1940,
@@ -276,7 +276,7 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
         id: 'mitsubishi-evo-ix',
         name: 'Lancer Evolution IX',
         manufacturer: 'Mitsubishi',
-        year: 2006,
+        year: 2005,
         dimensions: {
             length: 4490,
             width: 1770,
@@ -332,7 +332,7 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
         id: 'subaru-impreza-sti',
         name: 'Impreza WRX STI',
         manufacturer: 'Subaru',
-        year: 2006,
+        year: 2004,
         dimensions: {
             length: 4465,
             width: 1740,

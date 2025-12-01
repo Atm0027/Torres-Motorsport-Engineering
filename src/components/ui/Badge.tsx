@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { clsx } from 'clsx'
 
 export interface BadgeProps {
@@ -7,7 +8,7 @@ export interface BadgeProps {
     className?: string
 }
 
-export function Badge({ variant = 'cyan', size = 'sm', children, className }: BadgeProps) {
+export const Badge = memo(function Badge({ variant = 'cyan', size = 'sm', children, className }: BadgeProps) {
     const variants = {
         cyan: 'bg-torres-primary/20 text-torres-primary',
         orange: 'bg-torres-secondary/20 text-torres-secondary',
@@ -32,4 +33,4 @@ export function Badge({ variant = 'cyan', size = 'sm', children, className }: Ba
             {children}
         </span>
     )
-}
+})

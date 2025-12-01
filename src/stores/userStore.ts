@@ -247,3 +247,43 @@ export const useUserStore = create<UserState>()(
         }
     )
 )
+
+// =============================================================================
+// SELECTORES OPTIMIZADOS - Evitan re-renders innecesarios
+// =============================================================================
+
+// Selector para estado de autenticación
+export const useIsAuthenticated = () => useUserStore((state) => state.isAuthenticated)
+
+// Selector para loading
+export const useIsLoading = () => useUserStore((state) => state.isLoading)
+
+// Selector para usuario
+export const useUser = () => useUserStore((state) => state.user)
+
+// Selector para username
+export const useUsername = () => useUserStore((state) => state.user?.username ?? 'Usuario')
+
+// Selector para currency
+export const useUserCurrency = () => useUserStore((state) => state.user?.currency ?? 0)
+
+// Selector para vehículos owned
+export const useOwnedVehicles = () => useUserStore((state) => state.user?.ownedVehicles ?? [])
+
+// Selector para piezas owned
+export const useOwnedParts = () => useUserStore((state) => state.user?.ownedParts ?? [])
+
+// Selector para acciones de auth
+export const useAuthActions = () => useUserStore((state) => ({
+    login: state.login,
+    register: state.register,
+    logout: state.logout,
+}))
+
+// Selector para acciones de currency
+export const useCurrencyActions = () => useUserStore((state) => ({
+    spendCurrency: state.spendCurrency,
+    addCurrency: state.addCurrency,
+    purchasePart: state.purchasePart,
+    purchaseVehicle: state.purchaseVehicle,
+}))
