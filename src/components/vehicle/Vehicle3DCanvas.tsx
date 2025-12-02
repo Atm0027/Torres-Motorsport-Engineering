@@ -1,10 +1,36 @@
 import React, { Suspense, useRef, useEffect, useState, useCallback, useMemo, memo } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { OrbitControls, useGLTF, Environment, ContactShadows, Bounds, useBounds, Preload } from '@react-three/drei'
+import { OrbitControls, useGLTF, Bounds, useBounds, Preload, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Vehicle } from '@/types'
-import type { PresetsType } from '@react-three/drei/helpers/environment-assets'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+
+// =============================================================================
+// MAPEO DE ENTORNOS A ARCHIVOS HDR LOCALES
+// =============================================================================
+const ENVIRONMENT_HDR_FILES: Record<string, string> = {
+    'studio': '/environments/studio.hdr',
+    'garage': '/environments/garage.hdr',
+    'outdoor': '/environments/outdoor.hdr',
+    'showroom': '/environments/showroom.hdr'
+}
+
+// =============================================================================
+// PRECARGA DE MODELOS - Mejora el tiempo de carga
+// =============================================================================
+const VEHICLE_IDS = [
+    'nissan-skyline-r34',
+    'toyota-supra-a80',
+    'mazda-rx7-fd',
+    'honda-nsx',
+    'mitsubishi-evo-ix',
+    'subaru-impreza-sti'
+]
+
+// Precargar todos los modelos al cargar el módulo
+VEHICLE_IDS.forEach(id => {
+    useGLTF.preload(`/models/vehicles/${id}/base.glb`)
+})
 
 // =============================================================================
 // OPTIMIZACIÓN: Pre-cargar geometrías y materiales reutilizables
@@ -15,15 +41,159 @@ const sharedGeometries = {
     loading: new THREE.BoxGeometry(3, 1, 1.5)
 }
 
-const sharedMaterials = {
-    floor: new THREE.MeshStandardMaterial({
-        color: '#0a1628',
+// =============================================================================
+// CONFIGURACIÓN DE ENTORNOS DE ILUMINACIÓN
+// =============================================================================
+type EnvironmentType = 'studio' | 'garage' | 'outdoor' | 'showroom'
+
+interface EnvironmentConfig {
+    ambient: { intensity: number; color: string }
+    hemisphere: { intensity: number; skyColor: string; groundColor: string }
+    mainLight: { position: [number, number, number]; intensity: number; color: string }
+    fillLight: { position: [number, number, number]; intensity: number; color: string }
+    backLight: { position: [number, number, number]; intensity: number; color: string }
+    rimLight?: { position: [number, number, number]; intensity: number; color: string }
+    floorColor: string
+    floorOpacity: number
+}
+
+const ENVIRONMENT_CONFIGS: Record<EnvironmentType, EnvironmentConfig> = {
+    // ESTUDIO - Iluminación profesional de fotografía, neutra y equilibrada
+    studio: {
+        ambient: { intensity: 0.6, color: '#ffffff' },
+        hemisphere: { intensity: 0.4, skyColor: '#ffffff', groundColor: '#404040' },
+        mainLight: { position: [8, 10, 8], intensity: 1.8, color: '#ffffff' },
+        fillLight: { position: [-6, 6, -4], intensity: 0.9, color: '#e8e8ff' },
+        backLight: { position: [0, 4, -8], intensity: 0.5, color: '#ffffff' },
+        rimLight: { position: [-8, 3, 0], intensity: 0.4, color: '#ffffff' },
+        floorColor: '#1a1a2e',
+        floorOpacity: 0.8
+    },
+    // GARAJE - Iluminación cálida industrial, sombras más marcadas
+    garage: {
+        ambient: { intensity: 0.4, color: '#fff5e6' },
+        hemisphere: { intensity: 0.3, skyColor: '#ffcc80', groundColor: '#2d2d2d' },
+        mainLight: { position: [5, 8, 5], intensity: 1.5, color: '#ffd699' },
+        fillLight: { position: [-4, 4, -3], intensity: 0.5, color: '#ff9933' },
+        backLight: { position: [0, 3, -6], intensity: 0.3, color: '#ffb366' },
+        floorColor: '#2a2520',
+        floorOpacity: 0.9
+    },
+    // EXTERIOR - Luz natural del sol, cielo azul, sombras suaves
+    outdoor: {
+        ambient: { intensity: 0.5, color: '#e6f2ff' },
+        hemisphere: { intensity: 0.6, skyColor: '#87ceeb', groundColor: '#3d5c3d' },
+        mainLight: { position: [10, 12, 6], intensity: 2.0, color: '#fffaf0' },
+        fillLight: { position: [-8, 5, -5], intensity: 0.7, color: '#add8e6' },
+        backLight: { position: [-2, 6, -10], intensity: 0.4, color: '#87ceeb' },
+        rimLight: { position: [6, 2, -4], intensity: 0.3, color: '#ffe4b5' },
+        floorColor: '#2d3a2d',
+        floorOpacity: 0.7
+    },
+    // SHOWROOM - Iluminación dramática de exhibición, alto contraste
+    showroom: {
+        ambient: { intensity: 0.3, color: '#e6e6ff' },
+        hemisphere: { intensity: 0.2, skyColor: '#4a4a6a', groundColor: '#0a0a14' },
+        mainLight: { position: [6, 12, 6], intensity: 2.2, color: '#ffffff' },
+        fillLight: { position: [-5, 8, -4], intensity: 0.6, color: '#9999ff' },
+        backLight: { position: [0, 5, -8], intensity: 0.8, color: '#6666ff' },
+        rimLight: { position: [-6, 2, 2], intensity: 0.5, color: '#00d4ff' },
+        floorColor: '#0a0a1a',
+        floorOpacity: 0.95
+    }
+}
+
+// Materiales de suelo para cada entorno (se crean dinámicamente)
+const createFloorMaterial = (config: EnvironmentConfig) => {
+    return new THREE.MeshStandardMaterial({
+        color: config.floorColor,
         transparent: true,
-        opacity: 0.7,
-        roughness: 1,
-        metalness: 0
+        opacity: config.floorOpacity,
+        roughness: 0.8,
+        metalness: 0.1
     })
 }
+
+// =============================================================================
+// COMPONENTE: Iluminación por Entorno (con HDR + luces de apoyo)
+// =============================================================================
+const EnvironmentLighting = memo(({ environment }: { environment: EnvironmentType }) => {
+    const config = ENVIRONMENT_CONFIGS[environment]
+    const hdrFile = ENVIRONMENT_HDR_FILES[environment]
+
+    return (
+        <>
+            {/* Entorno HDR para reflexiones y luz ambiental */}
+            <Environment files={hdrFile} background={false} />
+
+            {/* Luz ambiental base (reducida porque HDR aporta) */}
+            <ambientLight intensity={config.ambient.intensity * 0.5} color={config.ambient.color} />
+
+            {/* Luz hemisférica para simular cielo/suelo */}
+            <hemisphereLight
+                intensity={config.hemisphere.intensity * 0.5}
+                color={config.hemisphere.skyColor}
+                groundColor={config.hemisphere.groundColor}
+            />
+
+            {/* Luz principal (key light) */}
+            <directionalLight
+                position={config.mainLight.position}
+                intensity={config.mainLight.intensity}
+                color={config.mainLight.color}
+                castShadow={false}
+            />
+
+            {/* Luz de relleno (fill light) */}
+            <directionalLight
+                position={config.fillLight.position}
+                intensity={config.fillLight.intensity}
+                color={config.fillLight.color}
+            />
+
+            {/* Luz trasera (back light) */}
+            <directionalLight
+                position={config.backLight.position}
+                intensity={config.backLight.intensity}
+                color={config.backLight.color}
+            />
+
+            {/* Luz de borde opcional (rim light) */}
+            {config.rimLight && (
+                <directionalLight
+                    position={config.rimLight.position}
+                    intensity={config.rimLight.intensity}
+                    color={config.rimLight.color}
+                />
+            )}
+        </>
+    )
+})
+EnvironmentLighting.displayName = 'EnvironmentLighting'
+
+// =============================================================================
+// COMPONENTE: Suelo del Entorno
+// =============================================================================
+const EnvironmentFloor = memo(({ environment }: { environment: EnvironmentType }) => {
+    const config = ENVIRONMENT_CONFIGS[environment]
+
+    const material = useMemo(() => createFloorMaterial(config), [config])
+
+    useEffect(() => {
+        return () => material.dispose()
+    }, [material])
+
+    return (
+        <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, -0.001, 0]}
+            receiveShadow
+            geometry={sharedGeometries.floor}
+            material={material}
+        />
+    )
+})
+EnvironmentFloor.displayName = 'EnvironmentFloor'
 
 // =============================================================================
 // CONFIGURACIÓN DE ORIENTACIÓN DE MODELOS
@@ -472,8 +642,12 @@ function LoadedVehicleModel({
     const modelRef = useRef<THREE.Group>(null)
     const modelPath = `/models/vehicles/${vehicleId}/base.glb`
 
-    // Load the GLB model con DRACO
+    console.log(`[3D] Cargando modelo: ${modelPath}`)
+
+    // Load the GLB model
     const gltf = useGLTF(modelPath)
+
+    console.log(`[3D] Modelo cargado: ${vehicleId}`, gltf.scene ? 'OK' : 'ERROR')
 
     // Use bounds API to auto-fit model
     const bounds = useBounds()
@@ -667,39 +841,40 @@ function LoadedVehicleModel({
             },
             // =====================================================================
             // NISSAN SKYLINE R34
-            // ANÁLISIS: body_main=18957v (GRANDE), chrome_trim=1760v (llantas)
-            // body_paint=9820v es gris oscuro, NO cambiar
+            // ANÁLISIS: body_paint = carrocería principal
+            // wheel_rim = llantas, caliper_red = pinzas de freno
             // =====================================================================
             'nissan-skyline-r34': {
-                body: ['body_main'],  // SOLO body_main - la carrocería principal
-                wheels: ['chrome_trim'],  // chrome_trim=1760v son las llantas
+                body: ['body_paint', 'body_main'],  // Carrocería principal
+                wheels: ['wheel_rim'],  // Llantas
                 calipers: ['caliper_red'],
                 interior: ['interior_main'],
-                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'body_paint', 'exhaust', 'brake_disc', 'badge', 'wheel_rim']
+                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'brake_disc', 'badge', 'chrome_trim', 'chrome']
             },
             // =====================================================================
             // HONDA NSX
-            // ANÁLISIS: Material.023=28796v (carrocería), Material.021=10552v (parachoques?)
+            // MODELO EDITADO EN BLENDER: Material.023 renombrado a body_main
+            // Material.021 renombrado a body_accent (parachoques)
             // wheel_rim=12953v (llantas), caliper_brake=720v (pinzas)
             // =====================================================================
             'honda-nsx': {
-                body: ['Material.023', 'Material.021'],  // Carrocería principal + parachoques
+                body: ['body_main', 'body_accent'],  // Carrocería + parachoques (renombrados en Blender)
                 wheels: ['wheel_rim'],   // Llantas (12953 vértices)
-                calipers: ['caliper_brake'],  // Pinzas de freno reales
+                calipers: ['caliper_brake'],  // Pinzas de freno
                 interior: ['interior_main'],  // Interior
-                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'brake_disc', 'body_paint', 'chrome_trim', 'Material.017', 'Material.016']
+                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'brake_disc', 'body_paint', 'chrome_trim', 'interior_trim', 'misc_parts']
             },
             // =====================================================================
             // MAZDA RX7 FD
-            // ANÁLISIS: Material.014=5732v (carrocería), chrome_trim=8461v son llantas!
-            // wheel_rim=3723v también son llantas, body_paint=490v (NO es carrocería)
+            // ANÁLISIS: body_paint = carrocería principal
+            // wheel_rim = llantas
             // =====================================================================
             'mazda-rx7-fd': {
-                body: ['Material.014'],  // Solo Material.014 es la carrocería
-                wheels: ['chrome_trim', 'wheel_rim'],  // Ambos son partes de llantas
-                calipers: ['brake_disc'],  // Discos de freno
-                interior: ['interior_main'],  // Interior
-                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'body_paint', 'Material.011', 'Material.015']
+                body: ['body_paint', 'body_main'],  // Carrocería principal
+                wheels: ['wheel_rim'],  // Llantas
+                calipers: [],  // Sin pinzas editables
+                interior: ['interior_main'],
+                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'brake_disc', 'chrome_trim', 'chrome', 'interior_trim', 'misc_parts']
             }
         }
 
@@ -743,24 +918,30 @@ function LoadedVehicleModel({
             'body_secondary', 'secondary'  // Partes negras/texturas de carrocería
         ]
 
+        // Función para normalizar nombre de material (elimina sufijos .001, .002, etc.)
+        const normalizeMaterialName = (name: string): string => {
+            return name.replace(/\.\d{3}$/i, '').toLowerCase()
+        }
+
         // Función para determinar la zona de un material
         const getZoneForMaterial = (matName: string, meshName: string): keyof typeof zoneColors | null => {
             const matLower = matName.toLowerCase()
+            const matNormalized = normalizeMaterialName(matName)
             const combined = `${matName} ${meshName}`.toLowerCase()
 
             // 1. PRIMERO: Verificar configuración ESPECÍFICA del vehículo (PRIORIDAD ABSOLUTA)
-            // Si el nombre del material coincide exactamente o contiene el patrón específico, se aplica
+            // Usa nombre normalizado para mayor compatibilidad con sufijos .001, .002, etc.
             for (const pattern of vehicleConfig.body) {
-                if (matLower === pattern || matLower.includes(pattern)) return 'body'
+                if (matNormalized === pattern || matNormalized.includes(pattern) || matLower.includes(pattern)) return 'body'
             }
             for (const pattern of vehicleConfig.wheels) {
-                if (matLower === pattern || matLower.includes(pattern)) return 'wheels'
+                if (matNormalized === pattern || matNormalized.includes(pattern) || matLower.includes(pattern)) return 'wheels'
             }
             for (const pattern of vehicleConfig.calipers) {
-                if (matLower === pattern || matLower.includes(pattern)) return 'calipers'
+                if (matNormalized === pattern || matNormalized.includes(pattern) || matLower.includes(pattern)) return 'calipers'
             }
             for (const pattern of vehicleConfig.interior) {
-                if (matLower === pattern || matLower.includes(pattern)) return 'interior'
+                if (matNormalized === pattern || matNormalized.includes(pattern) || matLower.includes(pattern)) return 'interior'
             }
 
             // 2. Verificar exclusiones ESPECÍFICAS del vehículo
@@ -852,8 +1033,19 @@ function LoadedVehicleModel({
                     // Aplicar color de la zona
                     mat.color.copy(zoneColors[zone])
 
+                    // PARA CARROCERÍA: Forzar que el color sea visible
+                    if (zone === 'body') {
+                        // Remover texturas que puedan ocultar el color
+                        if (mat.map) mat.map = null
+                        // Propiedades de pintura de coche
+                        mat.metalness = 0.4
+                        mat.roughness = 0.2
+                        mat.envMapIntensity = 1.5
+                        // Aplicar acabado configurado
+                        applyFinishToMaterial(mat, finishes.body)
+                    }
                     // PARA LLANTAS: Forzar propiedades específicas para que el color sea visible
-                    if (zone === 'wheels') {
+                    else if (zone === 'wheels') {
                         // Remover cualquier textura que pueda estar ocultando el color
                         if (mat.map) mat.map = null
                         // Asegurar que el color sea visible
@@ -966,7 +1158,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         return { hasError: true }
     }
 
-    componentDidCatch(): void {
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+        console.error('[3D] Error cargando modelo:', error.message)
+        console.error('[3D] Component stack:', errorInfo.componentStack)
         this.props.onError?.()
     }
 
@@ -1209,13 +1403,6 @@ export function Vehicle3DCanvas({
     }
     const allFinishes: VehicleZoneFinishes = vehicleFinishes ? { ...defaultFinishes, ...vehicleFinishes } : defaultFinishes
 
-    const environmentMap: Record<string, PresetsType> = {
-        'studio': 'studio',
-        'garage': 'warehouse',
-        'outdoor': 'sunset',
-        'showroom': 'night'
-    }
-
     // Posición inicial de la cámara basada en el preset
     const initialCameraPosition = useMemo(() => {
         const viewConfig = CAMERA_VIEWS[cameraPreset] || CAMERA_VIEWS['three-quarter']
@@ -1229,15 +1416,15 @@ export function Vehicle3DCanvas({
 
     return (
         <Canvas
-            shadows="basic" // Cambiar de "soft" a "basic" para mejor rendimiento
+            shadows={false} // Desactivar sombras para mejor rendimiento inicial
             dpr={[1, 1.5]} // Reducir DPR máximo para mejor rendimiento
             camera={{
                 position: [initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z],
                 fov: 45,
                 near: 0.1,
-                far: 30 // Reducir far plane aún más
+                far: 50 // Aumentar far plane para evitar clipping
             }}
-            style={{ background: 'transparent' }}
+            style={{ background: 'transparent', width: '100%', height: '100%' }}
             gl={{
                 antialias: true,
                 alpha: true,
@@ -1245,61 +1432,18 @@ export function Vehicle3DCanvas({
                 stencil: false,
                 depth: true,
                 logarithmicDepthBuffer: false,
-                preserveDrawingBuffer: false, // No preservar buffer para mejor rendimiento
-                failIfMajorPerformanceCaveat: false // Permitir software rendering como fallback
+                preserveDrawingBuffer: false,
+                failIfMajorPerformanceCaveat: false
             }}
-            performance={{ min: 0.5, max: 1, debounce: 200 }} // Throttle adaptativo mejorado
-            frameloop="demand" // Solo renderizar cuando hay cambios
-            flat // Desactivar tone mapping para mejor rendimiento
+            performance={{ min: 0.3, max: 1, debounce: 100 }}
+            frameloop="always" // Renderizado continuo para evitar problemas de carga
+            flat
         >
-            {/* Lighting - Optimizado para rendimiento */}
-            <ambientLight intensity={0.7} />
-            <hemisphereLight intensity={0.3} color="#ffffff" groundColor="#1e3a5f" />
+            {/* Iluminación dinámica basada en el entorno seleccionado */}
+            <EnvironmentLighting environment={environment} />
 
-            {/* Luz principal con sombras muy optimizadas */}
-            <spotLight
-                position={[8, 8, 8]}
-                angle={0.4}
-                penumbra={0.3}
-                intensity={1.0}
-                castShadow
-                shadow-mapSize={256} // Reducido de 512 para mejor rendimiento
-                shadow-bias={-0.002}
-                shadow-camera-near={2}
-                shadow-camera-far={15}
-            />
-
-            {/* Luz secundaria sin sombras */}
-            <spotLight
-                position={[-6, 5, -6]}
-                angle={0.5}
-                penumbra={0.4}
-                intensity={0.5}
-                castShadow={false}
-            />
-
-            {/* Environment - usar preset ligero */}
-            <Environment preset={environmentMap[environment]} frames={1} />
-
-            {/* Ground shadow - Muy optimizado */}
-            <ContactShadows
-                position={[0, 0, 0]}
-                opacity={0.35}
-                scale={8}
-                blur={1.5}
-                far={2.5}
-                resolution={128} // Reducido significativamente
-                frames={1}
-            />
-
-            {/* Subtle floor plane - Geometría compartida */}
-            <mesh
-                rotation={[-Math.PI / 2, 0, 0]}
-                position={[0, -0.001, 0]}
-                receiveShadow
-                geometry={sharedGeometries.floor}
-                material={sharedMaterials.floor}
-            />
+            {/* Suelo dinámico basado en el entorno */}
+            <EnvironmentFloor environment={environment} />
 
             {/* Vehicle Model */}
             <Bounds fit clip observe margin={1.2}>

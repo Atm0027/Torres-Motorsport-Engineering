@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
     Users,
     Trophy,
     Heart,
     Download,
-    Filter,
     Crown,
     Medal,
     Flame,
-    Clock
+    Clock,
+    ExternalLink
 } from 'lucide-react'
 import { Card } from '@components/ui/Card'
 import { Button } from '@components/ui/Button'
 import { Badge } from '@components/ui/Badge'
+import { useNotify } from '@stores/uiStore'
 import { formatNumber, formatCurrency } from '@utils/formatters'
 
 // Mock community data
@@ -96,8 +98,38 @@ const events = [
 ]
 
 export function CommunityPage() {
+    const navigate = useNavigate()
+    const notify = useNotify()
     const [activeTab, setActiveTab] = useState<'builds' | 'leaderboards' | 'events'>('builds')
     const [leaderboardType, setLeaderboardType] = useState<'horsepower' | 'acceleration'>('horsepower')
+
+    const handleViewBuild = useCallback((build: typeof topBuilds[0]) => {
+        // Navegar al garage con el vehículo correspondiente
+        const vehicleMap: Record<string, string> = {
+            'Nissan Skyline R34': 'nissan-skyline-r34',
+            'Toyota Supra A80': 'toyota-supra-a80',
+            'Mitsubishi Lancer Evo IX': 'mitsubishi-evo-ix',
+            'Dodge Challenger Hellcat': 'dodge-challenger-hellcat',
+        }
+        const vehicleId = vehicleMap[build.vehicle]
+        if (vehicleId) {
+            navigate(`/garage?vehicle=${vehicleId}`)
+        } else {
+            notify.info('Build de ejemplo', `Este es un build de demostración de ${build.author}`)
+        }
+    }, [navigate, notify])
+
+    const handleLikeBuild = useCallback((buildName: string) => {
+        notify.success('¡Like!', `Has dado like a "${buildName}"`)
+    }, [notify])
+
+    const handleDownloadBuild = useCallback((buildName: string) => {
+        notify.success('Descargando', `Build "${buildName}" añadido a tus favoritos`)
+    }, [notify])
+
+    const handleParticipateEvent = useCallback((eventName: string) => {
+        notify.success('¡Inscrito!', `Te has inscrito en "${eventName}"`)
+    }, [notify])
 
     return (
         <div className="h-full flex flex-col">
@@ -137,9 +169,6 @@ export function CommunityPage() {
                             <h2 className="font-display text-lg font-semibold text-torres-light-100 uppercase tracking-wider">
                                 Builds Destacados
                             </h2>
-                            <Button variant="secondary" size="sm" leftIcon={<Filter className="w-4 h-4" />}>
-                                Filtrar
-                            </Button>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-4">
@@ -167,17 +196,25 @@ export function CommunityPage() {
                                     <p className="text-sm text-torres-light-400 mb-4">{build.vehicle}</p>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4 text-sm text-torres-light-400">
-                                            <span className="flex items-center gap-1">
-                                                <Heart className="w-4 h-4 text-torres-danger" />
+                                        <div className="flex items-center gap-3 text-sm text-torres-light-400">
+                                            <button
+                                                onClick={() => handleLikeBuild(build.name)}
+                                                className="flex items-center gap-1 hover:text-torres-danger transition-colors"
+                                            >
+                                                <Heart className="w-4 h-4" />
                                                 {formatNumber(build.likes)}
-                                            </span>
-                                            <span className="flex items-center gap-1">
+                                            </button>
+                                            <button
+                                                onClick={() => handleDownloadBuild(build.name)}
+                                                className="flex items-center gap-1 hover:text-torres-primary transition-colors"
+                                            >
                                                 <Download className="w-4 h-4" />
                                                 {formatNumber(build.downloads)}
-                                            </span>
+                                            </button>
                                         </div>
-                                        <Button size="sm">Ver Build</Button>
+                                        <Button size="sm" onClick={() => handleViewBuild(build)} rightIcon={<ExternalLink className="w-3 h-3" />}>
+                                            Ver Build
+                                        </Button>
                                     </div>
                                 </Card>
                             ))}
@@ -280,7 +317,7 @@ export function CommunityPage() {
                                         </div>
                                     </div>
 
-                                    <Button>Participar</Button>
+                                    <Button onClick={() => handleParticipateEvent(event.name)}>Participar</Button>
                                 </div>
                             </Card>
                         ))}

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, lazy, Suspense, memo, useMemo } from 'react'
+import { useState, useRef, useCallback, useEffect, Suspense, memo, useMemo } from 'react'
 import {
     RotateCcw,
     ZoomIn,
@@ -16,9 +16,7 @@ import {
 import { Button } from '@components/ui/Button'
 import { useVehicleColors, useVehicleFinishes } from '@stores/garageStore'
 import type { Vehicle, VehicleMaterials, EnvironmentConfig } from '@/types'
-
-// Lazy load del canvas 3D para no bloquear la carga inicial
-const Vehicle3DCanvas = lazy(() => import('./Vehicle3DCanvas').then(m => ({ default: m.Vehicle3DCanvas })))
+import { Vehicle3DCanvas } from './Vehicle3DCanvas'
 
 // Fallback de carga para el canvas 3D - Memoizado
 const Canvas3DLoader = memo(() => (
@@ -29,6 +27,142 @@ const Canvas3DLoader = memo(() => (
         </div>
     </div>
 ))
+
+// =============================================================================
+// COMPONENTE: Efectos de fondo por entorno
+// =============================================================================
+const EnvironmentBackgroundEffects = memo(({ environment }: { environment: EnvironmentConfig['preset'] }) => {
+    switch (environment) {
+        case 'studio':
+            return (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                    {/* Studio - Fondo limpio con softbox lights simulados */}
+                    {/* Softbox superior grande */}
+                    <div className="absolute top-0 left-1/4 right-1/4 h-32 bg-gradient-to-b from-white/20 to-transparent blur-2xl" />
+                    {/* Reflejo lateral izquierdo */}
+                    <div className="absolute left-0 top-1/4 bottom-1/4 w-24 bg-gradient-to-r from-white/15 to-transparent blur-xl" />
+                    {/* Reflejo lateral derecho */}
+                    <div className="absolute right-0 top-1/4 bottom-1/4 w-24 bg-gradient-to-l from-white/15 to-transparent blur-xl" />
+                    {/* Suelo reflectante */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    {/* Grid sutil en perspectiva */}
+                    <div
+                        className="absolute inset-0 opacity-20"
+                        style={{
+                            backgroundImage: `
+                                linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)
+                            `,
+                            backgroundSize: '50px 50px',
+                            transform: 'perspective(500px) rotateX(60deg)',
+                            transformOrigin: 'center bottom'
+                        }}
+                    />
+                </div>
+            )
+
+        case 'garage':
+            return (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                    {/* Garage - Iluminación industrial cálida */}
+                    {/* Bombillas colgantes simuladas */}
+                    <div className="absolute top-0 left-1/4 w-48 h-48 bg-amber-500/30 rounded-full blur-3xl" />
+                    <div className="absolute top-0 right-1/4 w-40 h-40 bg-orange-400/25 rounded-full blur-3xl" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-400/20 rounded-full blur-2xl" />
+                    {/* Ventana lateral con luz */}
+                    <div className="absolute left-0 top-1/4 w-16 h-48 bg-gradient-to-r from-amber-300/20 to-transparent blur-lg" />
+                    {/* Suelo de concreto */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-stone-900/90 via-stone-800/50 to-transparent" />
+                    {/* Textura de ladrillo en paredes */}
+                    <div
+                        className="absolute inset-0 opacity-10"
+                        style={{
+                            backgroundImage: `repeating-linear-gradient(
+                                0deg,
+                                transparent,
+                                transparent 25px,
+                                rgba(139, 90, 43, 0.4) 25px,
+                                rgba(139, 90, 43, 0.4) 27px
+                            )`
+                        }}
+                    />
+                </div>
+            )
+
+        case 'outdoor':
+            return (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                    {/* Outdoor - Cielo y naturaleza */}
+                    {/* Sol */}
+                    <div className="absolute top-8 right-1/4 w-40 h-40 bg-yellow-300/30 rounded-full blur-3xl" />
+                    <div className="absolute top-12 right-1/4 w-20 h-20 bg-white/40 rounded-full blur-xl" />
+                    {/* Nubes sutiles */}
+                    <div className="absolute top-16 left-1/4 w-48 h-12 bg-white/10 rounded-full blur-2xl" />
+                    <div className="absolute top-24 left-1/2 w-32 h-8 bg-white/8 rounded-full blur-xl" />
+                    {/* Reflejo del cielo en el horizonte */}
+                    <div className="absolute top-0 inset-x-0 h-1/3 bg-gradient-to-b from-sky-400/10 to-transparent" />
+                    {/* Suelo con hierba */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-emerald-950/60 via-green-900/30 to-transparent" />
+                    {/* Línea del horizonte */}
+                    <div className="absolute left-0 right-0 top-1/2 h-px bg-gradient-to-r from-transparent via-green-800/30 to-transparent" />
+                    {/* Árboles lejanos (siluetas) */}
+                    <div
+                        className="absolute bottom-1/3 left-0 right-0 h-16 opacity-20"
+                        style={{
+                            background: `
+                                radial-gradient(ellipse 30px 40px at 10% 100%, #1a3d1a 70%, transparent 70%),
+                                radial-gradient(ellipse 25px 35px at 20% 100%, #1a3d1a 70%, transparent 70%),
+                                radial-gradient(ellipse 35px 45px at 35% 100%, #1a3d1a 70%, transparent 70%),
+                                radial-gradient(ellipse 20px 30px at 50% 100%, #1a3d1a 70%, transparent 70%),
+                                radial-gradient(ellipse 40px 50px at 70% 100%, #1a3d1a 70%, transparent 70%),
+                                radial-gradient(ellipse 25px 35px at 85% 100%, #1a3d1a 70%, transparent 70%),
+                                radial-gradient(ellipse 30px 40px at 95% 100%, #1a3d1a 70%, transparent 70%)
+                            `
+                        }}
+                    />
+                </div>
+            )
+
+        case 'showroom':
+            return (
+                <div className="absolute inset-0 pointer-events-none z-0">
+                    {/* Showroom - Iluminación dramática de exhibición */}
+                    {/* Spotlight principal desde arriba */}
+                    <div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-2xl"
+                        style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(99,102,241,0.1) 50%, transparent 100%)' }}
+                    />
+                    {/* Luces de acento laterales */}
+                    <div className="absolute top-1/4 left-0 w-32 h-64 bg-gradient-to-r from-blue-500/10 to-transparent blur-xl" />
+                    <div className="absolute top-1/4 right-0 w-32 h-64 bg-gradient-to-l from-purple-500/10 to-transparent blur-xl" />
+                    {/* Líneas de neón en el suelo */}
+                    <div className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent blur-sm" />
+                    {/* Suelo ultra reflectante */}
+                    <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black via-slate-950/80 to-transparent" />
+                    {/* Reflejo del coche en el suelo */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-white/5 to-transparent" />
+                    {/* Partículas de polvo iluminadas */}
+                    <div className="absolute inset-0 opacity-30">
+                        <div className="absolute top-1/4 left-1/3 w-1 h-1 bg-white/60 rounded-full" />
+                        <div className="absolute top-1/3 right-1/4 w-0.5 h-0.5 bg-white/40 rounded-full" />
+                        <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-cyan-300/50 rounded-full" />
+                        <div className="absolute top-2/3 right-1/3 w-0.5 h-0.5 bg-white/30 rounded-full" />
+                    </div>
+                    {/* Viñeta dramática */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)'
+                        }}
+                    />
+                </div>
+            )
+
+        default:
+            return null
+    }
+})
+EnvironmentBackgroundEffects.displayName = 'EnvironmentBackgroundEffects'
 
 interface Vehicle3DViewProps {
     vehicle: Vehicle
@@ -116,13 +250,17 @@ export const Vehicle3DView = memo(function Vehicle3DView({
     const environmentBackground = useMemo(() => {
         switch (environment) {
             case 'studio':
-                return 'bg-gradient-to-b from-torres-dark-700 to-torres-dark-900'
+                // Estudio profesional - gris neutro elegante
+                return 'bg-gradient-to-b from-slate-800 via-slate-900 to-gray-950'
             case 'garage':
-                return 'bg-gradient-to-b from-amber-950/30 to-torres-dark-900'
+                // Garaje industrial - tonos cálidos anaranjados
+                return 'bg-gradient-to-b from-amber-950/50 via-stone-900 to-neutral-950'
             case 'outdoor':
-                return 'bg-gradient-to-b from-sky-900/50 to-torres-dark-800'
+                // Exterior - cielo azul degradando a tierra
+                return 'bg-gradient-to-b from-sky-800/60 via-slate-800 to-emerald-950/40'
             case 'showroom':
-                return 'bg-gradient-to-b from-torres-dark-600 to-black'
+                // Showroom de lujo - negro con toques de púrpura/azul
+                return 'bg-gradient-to-b from-indigo-950/50 via-slate-950 to-black'
             default:
                 return 'bg-torres-dark-900'
         }
@@ -216,25 +354,13 @@ export const Vehicle3DView = memo(function Vehicle3DView({
                 className={`flex-1 overflow-hidden relative ${environmentBackground} cursor-grab active:cursor-grabbing`}
                 onWheel={handleWheel}
             >
-                {/* Floor reflection */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                {/* Environment-specific background effects - CAPA MÁS BAJA */}
+                <div className="absolute inset-0 z-0">
+                    <EnvironmentBackgroundEffects environment={environment} />
+                </div>
 
-                {/* Floor grid */}
-                <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                        backgroundImage: `
-                            linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px)
-                        `,
-                        backgroundSize: '50px 50px',
-                        transform: 'perspective(500px) rotateX(60deg)',
-                        transformOrigin: 'center bottom'
-                    }}
-                />
-
-                {/* 3D Car - Lazy loaded Three.js Canvas */}
-                <div className="absolute inset-0 flex items-center justify-center">
+                {/* 3D Car - Three.js Canvas - CAPA INTERMEDIA */}
+                <div className="absolute inset-0 z-10">
                     <Suspense fallback={<Canvas3DLoader />}>
                         <Vehicle3DCanvas
                             vehicle={vehicle}
@@ -250,7 +376,7 @@ export const Vehicle3DView = memo(function Vehicle3DView({
 
                     {/* Vehicle name overlay */}
                     {showUI && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10">
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none z-20">
                             <h3 className="text-lg font-display font-bold text-torres-light-100 drop-shadow-lg">
                                 {vehicle.manufacturer} {vehicle.name}
                             </h3>
@@ -263,7 +389,7 @@ export const Vehicle3DView = memo(function Vehicle3DView({
 
                 {/* Instruction overlay */}
                 {showUI && (
-                    <div className="absolute top-4 right-4 flex items-center gap-2 text-xs text-torres-light-400 bg-torres-dark-900/80 px-3 py-1.5 rounded z-10">
+                    <div className="absolute top-4 right-4 flex items-center gap-2 text-xs text-torres-light-400 bg-torres-dark-900/80 px-3 py-1.5 rounded z-20">
                         <Move className="w-3 h-3" />
                         <span>Arrastra para rotar • Scroll para zoom</span>
                     </div>
