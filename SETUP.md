@@ -1,30 +1,32 @@
 # Torres Motorsport Engineering - Guía de Configuración
 
-## 🚀 Instalación Inicial en Nuevo Ordenador
+## 🚀 Instalación Rápida en Windows
 
-### 1. Clonar el repositorio
-```bash
-git clone https://github.com/Atm0027/App-edicion-de-coches.git
-cd "App edicion de coches"
+### Opción 1: Script Automático (Recomendado)
+
+1. Abre PowerShell en la carpeta del proyecto
+2. Ejecuta:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 ```
 
-### 2. Instalar dependencias
-```bash
+### Opción 2: Manual
+
+1. **Instalar Node.js** (si no lo tienes):
+   - Descarga desde: https://nodejs.org/
+   - O usa winget: `winget install OpenJS.NodeJS.LTS`
+
+2. **Instalar dependencias**:
+```powershell
 npm install
 ```
 
-### 3. Configurar la consola de Python (opcional)
-Si necesitas usar scripts de análisis con Node.js:
-```bash
-npm exec -- python3 --version  # Verificar Python
-```
-
-### 4. Iniciar servidor de desarrollo
-```bash
+3. **Iniciar servidor de desarrollo**:
+```powershell
 npm run dev
 ```
 
-La aplicación estará disponible en: **http://localhost:3000**
+La aplicación estará disponible en: **http://localhost:3001**
 
 ---
 

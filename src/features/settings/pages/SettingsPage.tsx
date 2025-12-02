@@ -19,7 +19,7 @@ import { useUIStore, useNotify } from '@stores/uiStore'
 
 export function SettingsPage() {
     const navigate = useNavigate()
-    
+
     // Selectores individuales para evitar re-renders
     const user = useUserStore((state) => state.user)
     const logout = useUserStore((state) => state.logout)
