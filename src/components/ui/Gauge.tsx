@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 
 export interface GaugeProps {
     value: number
@@ -13,7 +13,14 @@ export interface GaugeProps {
     className?: string
 }
 
-export function Gauge({
+// Constantes fuera del componente para evitar recreaciones
+const SIZES = {
+    sm: { size: 80, stroke: 6 },
+    md: { size: 120, stroke: 8 },
+    lg: { size: 160, stroke: 10 },
+} as const
+
+export const Gauge = memo(function Gauge({
     value,
     max,
     min = 0,
@@ -27,13 +34,7 @@ export function Gauge({
     const percentage = ((value - min) / (max - min)) * 100
     const clampedPercentage = Math.min(Math.max(percentage, 0), 100)
 
-    const sizes = {
-        sm: { size: 80, stroke: 6 },
-        md: { size: 120, stroke: 8 },
-        lg: { size: 160, stroke: 10 },
-    }
-
-    const { size: svgSize, stroke } = sizes[size]
+    const { size: svgSize, stroke } = SIZES[size]
     const radius = (svgSize - stroke) / 2
     const circumference = radius * Math.PI * 2
     const arc = circumference * 0.75 // 270 degrees
@@ -117,10 +118,10 @@ export function Gauge({
             )}
         </div>
     )
-}
+})
 
 // Mini Gauge for inline stats
-export function MiniGauge({
+export const MiniGauge = memo(function MiniGauge({
     value,
     max,
     variant = 'cyan',
@@ -166,4 +167,4 @@ export function MiniGauge({
             </svg>
         </div>
     )
-}
+})

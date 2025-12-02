@@ -29,7 +29,54 @@ const MODEL_INITIAL_ROTATION: Record<string, number> = {
     'toyota-supra-a80': 90,     // Modelo viene orientado hacia -X
     'honda-nsx': 180,           // Modelo viene orientado hacia -Z
     'mitsubishi-evo-ix': 180,   // Modelo viene orientado hacia -Z
-    'subaru-impreza-sti': 270   // Probando 270° (-90°)
+    'subaru-impreza-sti': 0     // Sin rotación - usamos offset de cámara
+}
+
+// Offset de ángulo azimutal por vehículo para ajustar las vistas de cámara
+// Esto compensa modelos que tienen orientación diferente sin rotarlos
+const CAMERA_AZIMUTH_OFFSET: Record<string, number> = {
+    'subaru-impreza-sti': 90    // El modelo viene orientado 90° diferente
+}
+
+// Offset de posición por vehículo para corregir centrado
+// Formato: { vehicleId: { x, y, z } } - valores se suman a la posición final
+const MODEL_POSITION_OFFSET: Record<string, { x: number; y: number; z: number }> = {
+    'mazda-rx7-fd': { x: 0, y: -0.15, z: 0 }  // Bajar ligeramente para que toque el suelo
+}
+
+// Override específico de vistas por vehículo (para intercambiar laterales, etc.)
+// Formato: { vehicleId: { vistaOriginal: vistaDestino } }
+const CAMERA_VIEW_SWAP: Record<string, Record<string, string>> = {
+    'nissan-skyline-r34': {
+        'side-left': 'side-right',   // Intercambiar izquierda → derecha
+        'side-right': 'side-left'    // Intercambiar derecha → izquierda
+    },
+    'toyota-supra-a80': {
+        'front': 'side-left',        // Frontal muestra lateral izquierdo
+        'rear': 'side-right',        // Trasera muestra lateral derecho
+        'side-left': 'front',        // Lateral izq muestra frontal
+        'side-right': 'rear'         // Lateral der muestra trasera
+    },
+    'mazda-rx7-fd': {
+        'front': 'side-left',        // Frontal muestra lateral izquierdo
+        'rear': 'side-right',        // Trasera muestra lateral derecho
+        'side-left': 'front',        // Lateral izq muestra frontal
+        'side-right': 'rear'         // Lateral der muestra trasera
+    },
+    'honda-nsx': {
+        'side-left': 'side-right',   // Intercambiar izquierda → derecha
+        'side-right': 'side-left'    // Intercambiar derecha → izquierda
+    },
+    'mitsubishi-evo-ix': {
+        'side-left': 'side-right',   // Intercambiar izquierda → derecha
+        'side-right': 'side-left'    // Intercambiar derecha → izquierda
+    },
+    'subaru-impreza-sti': {
+        'front': 'side-right',       // Frontal muestra lateral derecha (para corregir que muestra izquierda)
+        'rear': 'side-left',         // Trasera muestra lateral izquierda (para corregir que muestra derecha)
+        'side-left': 'rear',         // Lateral izq muestra trasera (para corregir que muestra frontal)
+        'side-right': 'front'        // Lateral der muestra frontal (para corregir que muestra trasera)
+    }
 }
 
 // =============================================================================
@@ -107,20 +154,8 @@ function sphericalToCartesian(azimuth: number, polar: number, distance: number, 
 // Cache de materiales reutilizables para evitar clonaciones innecesarias
 const materialCache = new Map<string, THREE.Material>()
 
-// Precargar modelos conocidos
-const VEHICLE_PATHS = [
-    '/models/vehicles/mazda-rx7-fd/base.glb',
-    '/models/vehicles/nissan-skyline-r34/base.glb',
-    '/models/vehicles/toyota-supra-a80/base.glb',
-    '/models/vehicles/honda-nsx/base.glb',
-    '/models/vehicles/mitsubishi-evo-ix/base.glb',
-    '/models/vehicles/subaru-impreza-sti/base.glb',
-]
-
-// Pre-registrar rutas para useGLTF
-VEHICLE_PATHS.forEach(path => {
-    useGLTF.preload(path)
-})
+// NO precargar todos los modelos - se cargan bajo demanda
+// Esto mejora significativamente el tiempo de carga inicial
 
 function LoadedVehicleModel({
     vehicleId,
@@ -153,30 +188,47 @@ function LoadedVehicleModel({
         const center = new THREE.Vector3()
         const size = new THREE.Vector3()
 
-        // Calculate bounding box
+        // 1. PRIMERO aplicar rotación inicial (antes de calcular centrado)
+        const initialRotation = MODEL_INITIAL_ROTATION[vehicleId] ?? 0
+        scene.rotation.y = (initialRotation * Math.PI) / 180
+        scene.updateMatrixWorld(true) // Forzar actualización de matrices
+
+        // 2. Calculate bounding box DESPUÉS de rotar
         box.setFromObject(scene)
         box.getCenter(center)
         box.getSize(size)
 
-        // Calculate scale to fit model (3.5 units)
+        // 3. Calculate scale to fit model (3.5 units)
         const maxDim = Math.max(size.x, size.y, size.z)
         const scale = maxDim > 0 ? 3.5 / maxDim : 1
 
-        // Apply transforms in batch
+        // 4. Apply scale
         scene.scale.setScalar(scale)
-        scene.position.set(
-            -center.x * scale,
-            0,
-            -center.z * scale
-        )
+        scene.updateMatrixWorld(true)
 
-        // Calculate y position after scaling
+        // 5. Recalcular bounding box después del escalado
+        box.setFromObject(scene)
+        box.getCenter(center)
+
+        // 6. Centrar el modelo en X y Z
+        scene.position.set(
+            -center.x,
+            0,
+            -center.z
+        )
+        scene.updateMatrixWorld(true)
+
+        // 7. Posicionar en Y para que esté sobre el suelo
         box.setFromObject(scene)
         scene.position.y = -box.min.y
 
-        // Apply initial rotation
-        const initialRotation = MODEL_INITIAL_ROTATION[vehicleId] ?? 0
-        scene.rotation.y = (initialRotation * Math.PI) / 180
+        // 8. Aplicar offset de posición específico por vehículo (si existe)
+        const posOffset = MODEL_POSITION_OFFSET[vehicleId]
+        if (posOffset) {
+            scene.position.x += posOffset.x
+            scene.position.y += posOffset.y
+            scene.position.z += posOffset.z
+        }
 
         // Optimized material processing - menos clonaciones
         const colorObj = new THREE.Color(color)
@@ -320,8 +372,13 @@ function VehicleModelWithFallback({
     const [modelChecked, setModelChecked] = useState(false)
     const [modelExists, setModelExists] = useState(false)
 
-    // Check if model file exists
+    // Reset state and check if model file exists when vehicleId changes
     useEffect(() => {
+        // Reset states when vehicle changes
+        setHasError(false)
+        setModelChecked(false)
+        setModelExists(false)
+
         const checkModel = async () => {
             try {
                 const response = await fetch(`/models/vehicles/${vehicleId}/base.glb`, { method: 'HEAD' })
@@ -338,10 +395,12 @@ function VehicleModelWithFallback({
         setHasError(true)
     }, [])
 
+    // Mientras se verifica, no mostrar nada (evita flash del placeholder)
     if (!modelChecked) {
-        return <PlaceholderModel color={color} />
+        return null
     }
 
+    // Solo mostrar placeholder si realmente no existe el modelo
     if (hasError || !modelExists) {
         return <PlaceholderModel color={color} />
     }
@@ -359,75 +418,49 @@ function VehicleModelWithFallback({
 function CameraController({
     preset,
     isAutoRotating,
-    controlsRef
+    controlsRef,
+    vehicleId
 }: {
     preset: string
     isAutoRotating: boolean
     controlsRef: React.RefObject<OrbitControlsImpl | null>
+    vehicleId: string
 }) {
     const { camera } = useThree()
-    const targetPositionRef = useRef<THREE.Vector3 | null>(null)
-    const targetLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0.5, 0))
-    const isTransitioning = useRef(false)
 
-    // Cuando cambia el preset, calcular nueva posición de cámara
+    // Sincronizar autoRotate
     useEffect(() => {
-        const viewConfig = CAMERA_VIEWS[preset] || CAMERA_VIEWS['three-quarter']
+        if (controlsRef.current) {
+            controlsRef.current.autoRotate = isAutoRotating
+        }
+    }, [isAutoRotating, controlsRef])
+
+    // Cuando cambia el preset o el vehículo, posicionar cámara directamente
+    useEffect(() => {
+        if (!controlsRef.current) return
+
+        // Aplicar swap de vistas si el vehículo lo necesita
+        const vehicleSwaps = CAMERA_VIEW_SWAP[vehicleId]
+        const effectivePreset = vehicleSwaps?.[preset] ?? preset
+
+        const viewConfig = CAMERA_VIEWS[effectivePreset] || CAMERA_VIEWS['three-quarter']
+
+        // Aplicar offset de ángulo azimutal si el vehículo lo necesita
+        const azimuthOffset = CAMERA_AZIMUTH_OFFSET[vehicleId] ?? 0
+        const adjustedAzimuth = (viewConfig.azimuth + azimuthOffset) % 360
+
         const newPosition = sphericalToCartesian(
-            viewConfig.azimuth,
+            adjustedAzimuth,
             viewConfig.polar,
             viewConfig.distance,
             viewConfig.targetY
         )
 
-        targetPositionRef.current = newPosition
-        targetLookAtRef.current = new THREE.Vector3(0, viewConfig.targetY, 0)
-        isTransitioning.current = true
-
-        // Desactivar temporalmente auto-rotate durante la transición
-        if (controlsRef.current) {
-            controlsRef.current.autoRotate = false
-        }
-    }, [preset, controlsRef])
-
-    // Animación suave de la cámara
-    useFrame((_, delta) => {
-        if (!targetPositionRef.current || !isTransitioning.current) {
-            // Reactivar auto-rotate si está habilitado y no estamos en transición
-            if (controlsRef.current && isAutoRotating && !isTransitioning.current) {
-                controlsRef.current.autoRotate = true
-            }
-            return
-        }
-
-        const currentPos = camera.position.clone()
-        const targetPos = targetPositionRef.current
-
-        // Interpolar posición de la cámara
-        const lerpFactor = 1 - Math.pow(0.01, delta) // Suavizado exponencial
-        camera.position.lerp(targetPos, lerpFactor * 3)
-
-        // Actualizar el target de OrbitControls
-        if (controlsRef.current) {
-            controlsRef.current.target.lerp(targetLookAtRef.current, lerpFactor * 3)
-            controlsRef.current.update()
-        }
-
-        // Verificar si llegamos al destino
-        const distance = currentPos.distanceTo(targetPos)
-        if (distance < 0.05) {
-            camera.position.copy(targetPos)
-            if (controlsRef.current) {
-                controlsRef.current.target.copy(targetLookAtRef.current)
-                controlsRef.current.update()
-                // Reactivar auto-rotate si está habilitado
-                if (isAutoRotating) {
-                    controlsRef.current.autoRotate = true
-                }
-            }
-            isTransitioning.current = false
-        }
-    })
+        // Posicionar cámara directamente (sin animación)
+        camera.position.copy(newPosition)
+        controlsRef.current.target.set(0, viewConfig.targetY, 0)
+        controlsRef.current.update()
+    }, [preset, camera, controlsRef, vehicleId])
 
     return null
 }
@@ -609,6 +642,7 @@ export function Vehicle3DCanvas({
                 preset={cameraPreset}
                 isAutoRotating={isRotating}
                 controlsRef={controlsRef}
+                vehicleId={vehicle.id}
             />
 
             {/* Rotation Reporter - reporta el ángulo azimutal al padre */}
@@ -629,7 +663,7 @@ export function Vehicle3DCanvas({
                 maxPolarAngle={Math.PI / 2 - 0.1}
                 target={[0, 0.5, 0]}
                 autoRotate={isRotating}
-                autoRotateSpeed={0.4}
+                autoRotateSpeed={1.2}
                 enableDamping={true}
                 dampingFactor={0.08}
                 rotateSpeed={0.5}

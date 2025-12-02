@@ -10,10 +10,27 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
             workbox: {
-                // Optimización: precache de recursos críticos
-                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+                // Optimización: solo precache de recursos críticos
+                globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+                // Excluir chunks grandes del precache
+                globIgnores: ['**/vendor-three*.js', '**/parts-catalog*.js'],
                 // Cache de modelos GLB
                 runtimeCaching: [
+                    {
+                        // Cache de chunks grandes (Three.js, parts-catalog)
+                        urlPattern: /vendor-three.*\.js$|parts-catalog.*\.js$/,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'large-chunks',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 días
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    },
                     {
                         urlPattern: /\.glb$/,
                         handler: 'CacheFirst',
@@ -33,6 +50,20 @@ export default defineConfig({
                         handler: 'StaleWhileRevalidate',
                         options: {
                             cacheName: 'google-fonts-stylesheets'
+                        }
+                    },
+                    {
+                        urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'google-fonts-webfonts',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 año
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
                         }
                     }
                 ]
@@ -90,12 +121,27 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 // Optimización: separar chunks por tipo
-                manualChunks: {
+                manualChunks: (id) => {
                     // Vendor chunks
-                    'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-                    'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
-                    'vendor-state': ['zustand'],
-                    'vendor-ui': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+                    if (id.includes('node_modules')) {
+                        if (id.includes('react-dom') || id.includes('react-router')) {
+                            return 'vendor-react'
+                        }
+                        if (id.includes('three') || id.includes('@react-three')) {
+                            return 'vendor-three'
+                        }
+                        if (id.includes('zustand')) {
+                            return 'vendor-state'
+                        }
+                        if (id.includes('framer-motion') || id.includes('lucide-react')) {
+                            return 'vendor-ui'
+                        }
+                    }
+                    // Parts catalog como chunk separado (lazy load)
+                    if (id.includes('/data/parts.ts') || id.includes('/data/partsIndex.ts')) {
+                        return 'parts-catalog'
+                    }
+                    return undefined
                 },
                 // Optimización: nombres de chunks más eficientes
                 chunkFileNames: 'assets/[name]-[hash:8].js',

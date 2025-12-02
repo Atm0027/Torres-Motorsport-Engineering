@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react'
 import {
     RotateCcw,
     ZoomIn,
@@ -12,8 +12,20 @@ import {
     Pause
 } from 'lucide-react'
 import { Button } from '@components/ui/Button'
-import { Vehicle3DCanvas } from './Vehicle3DCanvas'
 import type { Vehicle, VehicleMaterials, EnvironmentConfig } from '@/types'
+
+// Lazy load del canvas 3D para no bloquear la carga inicial
+const Vehicle3DCanvas = lazy(() => import('./Vehicle3DCanvas').then(m => ({ default: m.Vehicle3DCanvas })))
+
+// Fallback de carga para el canvas 3D
+const Canvas3DLoader = () => (
+    <div className="w-full h-full flex items-center justify-center bg-torres-dark-800">
+        <div className="text-center">
+            <div className="animate-spin w-10 h-10 border-3 border-torres-primary border-t-transparent rounded-full mx-auto mb-3" />
+            <p className="text-sm text-torres-light-400">Cargando visor 3D...</p>
+        </div>
+    </div>
+)
 
 interface Vehicle3DViewProps {
     vehicle: Vehicle
@@ -23,13 +35,14 @@ interface Vehicle3DViewProps {
 
 type CameraPreset = 'front' | 'rear' | 'side-left' | 'side-right' | 'top' | 'three-quarter'
 
-const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number]; label: string }> = {
-    'front': { position: [0, 1, 5], label: 'Frontal' },
-    'rear': { position: [0, 1, -5], label: 'Trasera' },
-    'side-left': { position: [-5, 1, 0], label: 'Izquierda' },
-    'side-right': { position: [5, 1, 0], label: 'Derecha' },
-    'top': { position: [0, 6, 0], label: 'Superior' },
-    'three-quarter': { position: [4, 2, 4], label: '3/4' }
+// Constantes fuera del componente
+const CAMERA_PRESETS: Record<CameraPreset, { label: string }> = {
+    'front': { label: 'Frontal' },
+    'rear': { label: 'Trasera' },
+    'side-left': { label: 'Izquierda' },
+    'side-right': { label: 'Derecha' },
+    'top': { label: 'Superior' },
+    'three-quarter': { label: '3/4' }
 }
 
 const ENVIRONMENT_PRESETS: Record<EnvironmentConfig['preset'], { label: string; icon: typeof Sun }> = {
@@ -51,6 +64,12 @@ export function Vehicle3DView({
     const [cameraPreset, setCameraPreset] = useState<CameraPreset>('three-quarter')
     const [environment, setEnvironment] = useState<EnvironmentConfig['preset']>('studio')
 
+    // Resetear vista al cambiar de vehículo
+    useEffect(() => {
+        setCameraPreset('three-quarter')
+        setIsRotating(true)
+    }, [vehicle.id])
+
     // Callback para recibir la rotación real desde el canvas
     const handleRotationChange = useCallback((azimuth: number) => {
         setCurrentAzimuth(azimuth)
@@ -61,9 +80,10 @@ export function Vehicle3DView({
         setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)))
     }, [])
 
-    // Handle camera preset
+    // Handle camera preset - detiene rotación automática para mantener la vista
     const handleCameraPreset = useCallback((preset: CameraPreset) => {
         setCameraPreset(preset)
+        setIsRotating(false) // Detener rotación para quedarse en la vista seleccionada
     }, [])
 
     // Handle environment change
@@ -126,7 +146,14 @@ export function Vehicle3DView({
                     <Button
                         variant={isRotating ? 'primary' : 'ghost'}
                         size="sm"
-                        onClick={() => setIsRotating(!isRotating)}
+                        onClick={() => {
+                            const newRotating = !isRotating
+                            setIsRotating(newRotating)
+                            // Si activa rotación desde vista superior, volver a 3/4
+                            if (newRotating && cameraPreset === 'top') {
+                                setCameraPreset('three-quarter')
+                            }
+                        }}
                         title={isRotating ? 'Pausar rotación' : 'Rotar automáticamente'}
                         className="p-1"
                     >
@@ -188,15 +215,17 @@ export function Vehicle3DView({
                     }}
                 />
 
-                {/* 3D Car - Real Three.js Canvas */}
+                {/* 3D Car - Lazy loaded Three.js Canvas */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <Vehicle3DCanvas
-                        vehicle={vehicle}
-                        isRotating={isRotating}
-                        cameraPreset={cameraPreset}
-                        environment={environment}
-                        onRotationChange={handleRotationChange}
-                    />
+                    <Suspense fallback={<Canvas3DLoader />}>
+                        <Vehicle3DCanvas
+                            vehicle={vehicle}
+                            isRotating={isRotating}
+                            cameraPreset={cameraPreset}
+                            environment={environment}
+                            onRotationChange={handleRotationChange}
+                        />
+                    </Suspense>
 
                     {/* Vehicle name overlay */}
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10">
