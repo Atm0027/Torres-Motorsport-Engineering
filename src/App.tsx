@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, memo, useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { MainLayout } from '@components/layout/MainLayout'
 import { useUserStore } from '@stores/userStore'
 
@@ -12,17 +12,25 @@ const HomePage = lazy(() => import('@features/home/pages/HomePage').then(m => ({
 const LoginPage = lazy(() => import('@features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
 
-// Loading fallback component
-function PageLoader() {
-    return (
-        <div className="flex items-center justify-center h-full min-h-[200px]">
-            <div className="animate-spin w-8 h-8 border-4 border-torres-primary border-t-transparent rounded-full" />
-        </div>
-    )
+// Preload critical pages after initial render
+const preloadCriticalPages = () => {
+    // Preload garage (most used page) and home after a short delay
+    setTimeout(() => {
+        import('@features/garage/pages/GaragePage')
+        import('@features/home/pages/HomePage')
+    }, 1000)
 }
 
-// Protected Route wrapper
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+// Loading fallback component - memoized
+const PageLoader = memo(() => (
+    <div className="flex items-center justify-center h-full min-h-[200px]">
+        <div className="animate-spin w-8 h-8 border-4 border-torres-primary border-t-transparent rounded-full" />
+    </div>
+))
+PageLoader.displayName = 'PageLoader'
+
+// Protected Route wrapper - memoized
+const ProtectedRoute = memo(({ children }: { children: React.ReactNode }) => {
     const isAuthenticated = useUserStore((state) => state.isAuthenticated)
 
     if (!isAuthenticated) {
@@ -30,10 +38,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     }
 
     return <>{children}</>
-}
+})
+ProtectedRoute.displayName = 'ProtectedRoute'
 
-// Public Route wrapper (redirect if authenticated)
-function PublicRoute({ children }: { children: React.ReactNode }) {
+// Public Route wrapper - memoized
+const PublicRoute = memo(({ children }: { children: React.ReactNode }) => {
     const isAuthenticated = useUserStore((state) => state.isAuthenticated)
 
     if (isAuthenticated) {
@@ -41,11 +50,40 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     }
 
     return <>{children}</>
+})
+PublicRoute.displayName = 'PublicRoute'
+
+// Route change listener for preloading
+function RoutePreloader() {
+    const location = useLocation()
+
+    useEffect(() => {
+        // Preload adjacent pages based on current route
+        switch (location.pathname) {
+            case '/':
+                import('@features/garage/pages/GaragePage')
+                break
+            case '/garage':
+                import('@features/catalog/pages/CatalogPage')
+                break
+            case '/catalog':
+                import('@features/garage/pages/GaragePage')
+                break
+        }
+    }, [location.pathname])
+
+    return null
 }
 
 function App() {
+    // Preload critical pages after mount
+    useEffect(() => {
+        preloadCriticalPages()
+    }, [])
+
     return (
         <Suspense fallback={<PageLoader />}>
+            <RoutePreloader />
             <Routes>
                 {/* Auth Routes */}
                 <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />

@@ -1,10 +1,10 @@
 import { memo } from 'react'
-import { Car, FileImage, Gauge as GaugeIcon, Zap, Weight, Timer, Fuel, Settings, Cog } from 'lucide-react'
+import { FileImage, Gauge as GaugeIcon, Zap, Settings, Cog } from 'lucide-react'
 import { Card } from '@components/ui/Card'
 import { Gauge } from '@components/ui/Gauge'
 import { StatBar } from '@components/ui/ProgressBar'
 import { BlueprintView, Vehicle3DView } from '@components/vehicle'
-import { formatHorsepower, formatWeight, formatNumber } from '@utils/formatters'
+import { formatNumber } from '@utils/formatters'
 import type { Vehicle, PerformanceMetrics } from '@/types'
 
 interface OverviewSectionProps {
@@ -69,30 +69,30 @@ export const OverviewSection = memo(function OverviewSection({
                                 </div>
                                 <div className="space-y-3 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-torres-light-400">Código</span>
-                                        <span className="text-torres-light-100 font-mono">{vehicle.engineConfig?.code || 'N/A'}</span>
+                                        <span className="text-torres-light-400">Tipo</span>
+                                        <span className="text-torres-light-100 font-mono">{vehicle.baseSpecs?.engine?.type?.toUpperCase() || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Configuración</span>
                                         <span className="text-torres-light-100">
-                                            {vehicle.engineConfig?.configuration?.toUpperCase() || 'N/A'} {vehicle.engineConfig?.cylinders || ''}
+                                            {vehicle.baseSpecs?.engine?.cylinders || ''} Cilindros
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Cilindrada</span>
-                                        <span className="text-torres-light-100">{vehicle.engineConfig?.displacement || 0}L</span>
+                                        <span className="text-torres-light-100">{vehicle.baseSpecs?.engine?.displacement || 0}L</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Aspiración</span>
-                                        <span className="text-torres-light-100 capitalize">{vehicle.engineConfig?.aspiration || 'Natural'}</span>
+                                        <span className="text-torres-light-100 capitalize">{vehicle.baseSpecs?.engine?.naturallyAspirated ? 'Atmosférico' : 'Turbo'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Potencia Base</span>
-                                        <span className="text-torres-primary font-bold">{formatNumber(vehicle.baseStats?.horsepower || 0)} CV</span>
+                                        <span className="text-torres-primary font-bold">{formatNumber(vehicle.baseSpecs?.engine?.baseHorsepower || 0)} CV</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Par Motor Base</span>
-                                        <span className="text-torres-secondary font-bold">{formatNumber(vehicle.baseStats?.torque || 0)} Nm</span>
+                                        <span className="text-torres-secondary font-bold">{formatNumber(vehicle.baseSpecs?.engine?.baseTorque || 0)} Nm</span>
                                     </div>
                                 </div>
                             </Card>
@@ -146,27 +146,27 @@ export const OverviewSection = memo(function OverviewSection({
                                 <div className="space-y-3 text-sm">
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Tracción</span>
-                                        <span className="text-torres-light-100">{vehicle.drivetrain || 'N/A'}</span>
+                                        <span className="text-torres-light-100">{vehicle.baseSpecs?.drivetrain || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Transmisión</span>
-                                        <span className="text-torres-light-100">{vehicle.transmission || 'Manual'}</span>
+                                        <span className="text-torres-light-100 capitalize">{vehicle.baseSpecs?.transmission?.type || 'Manual'} {vehicle.baseSpecs?.transmission?.gears || 6}V</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-torres-light-400">Peso Base</span>
-                                        <span className="text-torres-light-100">{formatNumber(vehicle.baseStats?.weight || 0)} kg</span>
+                                        <span className="text-torres-light-100">{formatNumber(vehicle.baseSpecs?.weight || 0)} kg</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-torres-light-400">Distribución</span>
-                                        <span className="text-torres-light-100">{vehicle.weightDistribution || '50/50'}</span>
+                                        <span className="text-torres-light-400">Batalla</span>
+                                        <span className="text-torres-light-100">{vehicle.baseSpecs?.wheelbase || 0} mm</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-torres-light-400">Plataforma</span>
-                                        <span className="text-torres-light-100 font-mono">{vehicle.platform || 'N/A'}</span>
+                                        <span className="text-torres-light-400">Motor</span>
+                                        <span className="text-torres-light-100 font-mono capitalize">{vehicle.baseSpecs?.engineLayout || 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-torres-light-400">Categoría</span>
-                                        <span className="text-torres-light-100 capitalize">{vehicle.category || 'Sport'}</span>
+                                        <span className="text-torres-light-400">Carrocería</span>
+                                        <span className="text-torres-light-100 capitalize">{vehicle.bodyStyle || 'Coupe'}</span>
                                     </div>
                                 </div>
                             </Card>
@@ -182,12 +182,12 @@ export const OverviewSection = memo(function OverviewSection({
                                     </h3>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {vehicle.installedParts.slice(0, 10).map((partId, index) => (
+                                    {vehicle.installedParts.slice(0, 10).map((installedPart, index) => (
                                         <span
                                             key={index}
                                             className="px-2 py-1 text-xs bg-torres-primary/20 text-torres-primary rounded border border-torres-primary/30"
                                         >
-                                            {partId}
+                                            {installedPart.part?.name || installedPart.part?.id || 'Parte'}
                                         </span>
                                     ))}
                                     {vehicle.installedParts.length > 10 && (

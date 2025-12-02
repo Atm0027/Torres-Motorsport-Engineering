@@ -1,10 +1,29 @@
-import React, { Suspense, useRef, useEffect, useState, useCallback, useMemo } from 'react'
+import React, { Suspense, useRef, useEffect, useState, useCallback, useMemo, memo } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, ContactShadows, Bounds, useBounds, Preload } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Vehicle } from '@/types'
 import type { PresetsType } from '@react-three/drei/helpers/environment-assets'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+
+// =============================================================================
+// OPTIMIZACIÓN: Pre-cargar geometrías y materiales reutilizables
+// =============================================================================
+const sharedGeometries = {
+    floor: new THREE.CircleGeometry(6, 24), // Reducido a 24 segmentos
+    placeholder: new THREE.BoxGeometry(4, 1.2, 2),
+    loading: new THREE.BoxGeometry(3, 1, 1.5)
+}
+
+const sharedMaterials = {
+    floor: new THREE.MeshStandardMaterial({
+        color: '#0a1628',
+        transparent: true,
+        opacity: 0.7,
+        roughness: 1,
+        metalness: 0
+    })
+}
 
 // =============================================================================
 // CONFIGURACIÓN DE ORIENTACIÓN DE MODELOS
@@ -91,19 +110,22 @@ function isPointInWheel(x: number, y: number, z: number): boolean {
  * Crea un nuevo mesh con material wheel_separated para las llantas
  */
 function separateR34Wheels(scene: THREE.Group): void {
-    let bodyMesh: THREE.Mesh | null = null
+    let foundMesh: THREE.Mesh | null = null
 
     // Buscar el mesh body_main
     scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
             const matName = (child.material as THREE.Material)?.name?.toLowerCase() || ''
             if (matName === 'body_main') {
-                bodyMesh = child
+                foundMesh = child
             }
         }
     })
 
-    if (!bodyMesh) return
+    if (!foundMesh) return
+
+    // Asignar a variable no-null para TypeScript
+    const bodyMesh: THREE.Mesh = foundMesh
 
     const geometry = bodyMesh.geometry as THREE.BufferGeometry
     const positions = geometry.attributes.position
@@ -570,9 +592,26 @@ function LoadedVehicleModel({
         return scene
     }, [gltf.scene, vehicleId])
 
+    // Referencia para evitar re-aplicar colores innecesariamente
+    const lastColorsRef = useRef<string>('')
+    const lastFinishesRef = useRef<string>('')
+
     // Aplicar colores y acabados por zona al modelo
     useEffect(() => {
         if (!baseScene) return
+
+        // Serializar colores y acabados para comparar
+        const colorsKey = JSON.stringify(colors)
+        const finishesKey = JSON.stringify(finishes)
+
+        // Si los colores y acabados no cambiaron, no hacer nada
+        if (colorsKey === lastColorsRef.current && finishesKey === lastFinishesRef.current) {
+            return
+        }
+
+        // Actualizar referencias
+        lastColorsRef.current = colorsKey
+        lastFinishesRef.current = finishesKey
 
         // Crear objetos de color para cada zona
         const zoneColors = {
@@ -587,79 +626,80 @@ function LoadedVehicleModel({
 
         // =====================================================================
         // CONFIGURACIÓN ESPECÍFICA POR VEHÍCULO
-        // Basado en los materiales renombrados de cada modelo GLB
+        // Nombres EXACTOS de materiales obtenidos del análisis de los modelos GLB
         // =====================================================================
         const vehicleMaterialConfig: Record<string, {
             body: string[]
             wheels: string[]
             calipers: string[]
             interior: string[]
-            exclude?: string[]  // Materiales a excluir completamente (no cambiar nunca)
+            exclude?: string[]
         }> = {
             // =====================================================================
-            // TOYOTA SUPRA A80
-            // Materiales: carpaint, interior, glass, chrome, plastic, misc_metal, etc.
+            // TOYOTA SUPRA A80 - FUNCIONA CORRECTAMENTE (REFERENCIA)
             // =====================================================================
             'toyota-supra-a80': {
                 body: ['carpaint'],
-                wheels: [],  // No tiene material de llanta editable separado
+                wheels: ['wheel_metal'],  // wheel_metal.001 - busca por prefijo
                 calipers: [],
-                interior: ['interior']
+                interior: ['interior'],
+                exclude: ['glass', 'chrome', 'light', 'tire', 'rubber', 'plastic']
             },
             // =====================================================================
             // SUBARU IMPREZA STI
-            // Materiales con prefijo Sub_2M_ - algunos tienen texturas
             // =====================================================================
             'subaru-impreza-sti': {
-                body: ['sub_2m_carpaint_max1'],  // Sin textura
-                wheels: ['sub_2m_rim_main_max1', 'sub_2m_rim_notint_max1'],  // Solo normalTexture
-                calipers: [],  // sub_1MAT_Tire_Brake tiene textura completa
-                interior: [],  // Tiene textura completa
-                exclude: ['sub_1mat_tire_brake', 'sub_2m_interior']  // Tienen texturas
+                body: ['sub_2m_carpaint_max1', 'sub_2m_carpaintnormal_max1'],
+                wheels: ['sub_2m_rim_main_max1', 'sub_2m_rim_notint_max1'],
+                calipers: [],  // Tiene textura, no editable
+                interior: [],  // Tiene textura, no editable
+                exclude: ['tire', 'glass', 'chrome', 'light', 'rubber', 'interior', 'badge']
             },
             // =====================================================================
             // MITSUBISHI EVO IX
-            // Materiales con prefijo mM_ - nombres largos
             // =====================================================================
             'mitsubishi-evo-ix': {
-                body: ['mm_carpaint_max'],  // Sin textura - carpaint
-                wheels: ['mm_rim_main_max1', 'mm_rim_notint_max1'],  // Solo normalTexture
-                calipers: ['callipergloss'],  // Solo normalTexture
-                interior: [],  // Tiene textura completa
-                exclude: ['mm_interior']  // Tiene textura
+                body: ['mm_carpaint_max_002', 'mm_carpaintnormal_max1'],
+                wheels: ['mm_rim_main_max1', 'mm_rim_notint_max1'],
+                calipers: ['callipergloss'],  // mmitsubishi...callipergloss
+                interior: [],  // Tiene textura, no editable
+                exclude: ['tire', 'glass', 'chrome', 'light', 'rubber', 'interior', 'badge', 'carbon']
             },
             // =====================================================================
             // NISSAN SKYLINE R34
-            // Las llantas se separan dinámicamente de body_main en tiempo de ejecución
-            // El material wheel_separated se crea por separateR34Wheels()
-            // wheel_rim = partes decorativas (molduras), NO las llantas reales
+            // ANÁLISIS: body_main=18957v (GRANDE), chrome_trim=1760v (llantas)
+            // body_paint=9820v es gris oscuro, NO cambiar
             // =====================================================================
             'nissan-skyline-r34': {
-                body: ['body_paint', 'body_main'],
-                wheels: ['wheel_separated'],  // Material creado dinámicamente
+                body: ['body_main'],  // SOLO body_main - la carrocería principal
+                wheels: ['chrome_trim'],  // chrome_trim=1760v son las llantas
                 calipers: ['caliper_red'],
                 interior: ['interior_main'],
-                exclude: ['body_secondary', 'wheel_rim']  // body_secondary tiene textura, wheel_rim no son llantas
+                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'body_paint', 'exhaust', 'brake_disc', 'badge', 'wheel_rim']
             },
             // =====================================================================
             // HONDA NSX
-            // Materiales renombrados - body_secondary SIN textura (OK editar)
+            // ANÁLISIS: Material.023=28796v (carrocería), Material.021=10552v (parachoques?)
+            // wheel_rim=12953v (llantas), caliper_brake=720v (pinzas)
             // =====================================================================
             'honda-nsx': {
-                body: ['body_paint', 'body_secondary'],
-                wheels: ['wheel_rim'],
-                calipers: ['caliper_brake'],
-                interior: ['interior_main']
+                body: ['Material.023', 'Material.021'],  // Carrocería principal + parachoques
+                wheels: ['wheel_rim'],   // Llantas (12953 vértices)
+                calipers: ['caliper_brake'],  // Pinzas de freno reales
+                interior: ['interior_main'],  // Interior
+                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'brake_disc', 'body_paint', 'chrome_trim', 'Material.017', 'Material.016']
             },
             // =====================================================================
             // MAZDA RX7 FD
-            // Materiales renombrados - todo sin texturas de color
+            // ANÁLISIS: Material.014=5732v (carrocería), chrome_trim=8461v son llantas!
+            // wheel_rim=3723v también son llantas, body_paint=490v (NO es carrocería)
             // =====================================================================
             'mazda-rx7-fd': {
-                body: ['body_paint', 'body_secondary'],
-                wheels: ['wheel_rim'],
-                calipers: [],  // No tiene pinzas editables
-                interior: ['interior_main']
+                body: ['Material.014'],  // Solo Material.014 es la carrocería
+                wheels: ['chrome_trim', 'wheel_rim'],  // Ambos son partes de llantas
+                calipers: ['brake_disc'],  // Discos de freno
+                interior: ['interior_main'],  // Interior
+                exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'body_paint', 'Material.011', 'Material.015']
             }
         }
 
@@ -669,73 +709,77 @@ function LoadedVehicleModel({
         }
 
         // PATRONES GENÉRICOS (aplicables a todos los modelos)
+        // NOTA: Evitar patrones demasiado amplios como 'body' o 'paint' que causan falsos positivos
         const genericPatterns = {
             body: [
-                'carpaint', 'car_paint', 'body', 'paint', 'carroceria',
-                'karosserie', 'carrosserie', 'carrozzeria', 'exterior'
+                'carpaint', 'car_paint', 'body_paint', 'carroceria',
+                'karosserie', 'carrosserie', 'carrozzeria'
             ],
             wheels: [
-                'wheel', 'rim', 'llanta', 'felge', 'jante', 'cerchio', 'spoke'
+                'wheel_rim', 'wheel_metal', 'rim_main', 'llanta', 'felge', 'jante', 'cerchio'
             ],
             calipers: [
                 'caliper', 'calliper', 'pinza', 'bremssattel', 'brake_caliper'
             ],
             interior: [
-                'interior', 'seat', 'dashboard', 'steering', 'cockpit'
+                'interior_main', 'interior_max', 'seat', 'dashboard', 'steering', 'cockpit'
             ],
             aero: [
                 'spoiler', 'wing', 'diffuser', 'splitter', 'canard', 'lip', 'skirt'
             ]
         }
 
-        // PATRONES A EXCLUIR SIEMPRE
+        // PATRONES A EXCLUIR SIEMPRE (nunca cambiar color)
         const neverChange = [
             'glass', 'window', 'windshield', 'cristal', 'vidrio', 'transparent', 'clear', 'lens',
             'tire', 'tyre', 'rubber', 'goma', 'neumatico', 'pneu', 'reifen',
-            'chrome', 'cromo', 'mirror', 'espejo', 'reflector', 'reflective',
+            'chrome', 'cromo', 'chrome_trim', 'mirror', 'espejo', 'reflector', 'reflective',
             'headlight', 'taillight', 'light', 'lamp', 'faro', 'luz', 'piloto', 'scheinwerfer',
             'engine', 'motor', 'exhaust', 'escape', 'muffler', 'pipe',
             'suspension', 'spring', 'shock', 'brake_disc', 'rotor', 'disc', 'disco',
             'carbon', 'fiber', 'fibra', 'cf_',
             'plastic', 'plastico', 'grill', 'grille', 'vent',
-            'badge', 'emblem', 'logo', 'numberplate', 'nothing', 'misc_metal'
+            'badge', 'emblem', 'logo', 'numberplate', 'nothing', 'misc_metal',
+            'body_secondary', 'secondary'  // Partes negras/texturas de carrocería
         ]
 
         // Función para determinar la zona de un material
         const getZoneForMaterial = (matName: string, meshName: string): keyof typeof zoneColors | null => {
+            const matLower = matName.toLowerCase()
             const combined = `${matName} ${meshName}`.toLowerCase()
 
-            // 0. Verificar exclusiones ESPECÍFICAS del vehículo (prioridad máxima)
+            // 1. PRIMERO: Verificar configuración ESPECÍFICA del vehículo (PRIORIDAD ABSOLUTA)
+            // Si el nombre del material coincide exactamente o contiene el patrón específico, se aplica
+            for (const pattern of vehicleConfig.body) {
+                if (matLower === pattern || matLower.includes(pattern)) return 'body'
+            }
+            for (const pattern of vehicleConfig.wheels) {
+                if (matLower === pattern || matLower.includes(pattern)) return 'wheels'
+            }
+            for (const pattern of vehicleConfig.calipers) {
+                if (matLower === pattern || matLower.includes(pattern)) return 'calipers'
+            }
+            for (const pattern of vehicleConfig.interior) {
+                if (matLower === pattern || matLower.includes(pattern)) return 'interior'
+            }
+
+            // 2. Verificar exclusiones ESPECÍFICAS del vehículo
             if (vehicleConfig.exclude) {
                 for (const pattern of vehicleConfig.exclude) {
                     if (combined.includes(pattern.toLowerCase())) {
-                        return null  // Log se hará después con debugLog
+                        return null
                     }
                 }
             }
 
-            // 1. Verificar si debe excluirse SIEMPRE (patrones globales)
+            // 3. Verificar si debe excluirse SIEMPRE (patrones globales)
             for (const pattern of neverChange) {
                 if (combined.includes(pattern)) {
                     return null
                 }
             }
 
-            // 2. Verificar configuración ESPECÍFICA del vehículo (prioridad máxima)
-            for (const pattern of vehicleConfig.calipers) {
-                if (combined.includes(pattern.toLowerCase())) return 'calipers'
-            }
-            for (const pattern of vehicleConfig.wheels) {
-                if (combined.includes(pattern.toLowerCase())) return 'wheels'
-            }
-            for (const pattern of vehicleConfig.interior) {
-                if (combined.includes(pattern.toLowerCase())) return 'interior'
-            }
-            for (const pattern of vehicleConfig.body) {
-                if (combined.includes(pattern.toLowerCase())) return 'body'
-            }
-
-            // 3. Verificar patrones GENÉRICOS
+            // 4. Verificar patrones GENÉRICOS (fallback para modelos no configurados)
             for (const pattern of genericPatterns.calipers) {
                 if (combined.includes(pattern)) return 'calipers'
             }
@@ -884,14 +928,20 @@ function LoadedVehicleModel({
 }
 
 // =============================================================================
-// COMPONENTE: Modelo placeholder (OPTIMIZADO)
+// COMPONENTE: Modelo placeholder (OPTIMIZADO - geometría compartida)
 // =============================================================================
-const PlaceholderModel = ({ color }: { color: string }) => (
-    <mesh position={[0, 0.5, 0]}>
-        <boxGeometry args={[4, 1.2, 2]} />
-        <meshBasicMaterial color={color} />
-    </mesh>
-)
+const PlaceholderModel = memo(({ color }: { color: string }) => {
+    const material = useMemo(() => new THREE.MeshBasicMaterial({ color }), [color])
+
+    useEffect(() => {
+        return () => material.dispose()
+    }, [material])
+
+    return (
+        <mesh position={[0, 0.5, 0]} geometry={sharedGeometries.placeholder} material={material} />
+    )
+})
+PlaceholderModel.displayName = 'PlaceholderModel'
 
 // =============================================================================
 // COMPONENTE: Error Boundary
@@ -1045,14 +1095,20 @@ function CameraController({
 }
 
 // =============================================================================
-// COMPONENTE: Loading fallback (OPTIMIZADO - sin animación)
+// COMPONENTE: Loading fallback (OPTIMIZADO - geometría compartida, sin animación)
 // =============================================================================
-const LoadingFallback = ({ color }: { color: string }) => (
-    <mesh position={[0, 0.5, 0]}>
-        <boxGeometry args={[3, 1, 1.5]} />
-        <meshBasicMaterial color={color} wireframe />
-    </mesh>
-)
+const LoadingFallback = memo(({ color }: { color: string }) => {
+    const material = useMemo(() => new THREE.MeshBasicMaterial({ color, wireframe: true }), [color])
+
+    useEffect(() => {
+        return () => material.dispose()
+    }, [material])
+
+    return (
+        <mesh position={[0, 0.5, 0]} geometry={sharedGeometries.loading} material={material} />
+    )
+})
+LoadingFallback.displayName = 'LoadingFallback'
 
 // =============================================================================
 // COMPONENTE: Reporter de rotación (OPTIMIZADO)
@@ -1173,76 +1229,77 @@ export function Vehicle3DCanvas({
 
     return (
         <Canvas
-            shadows="soft"
+            shadows="basic" // Cambiar de "soft" a "basic" para mejor rendimiento
             dpr={[1, 1.5]} // Reducir DPR máximo para mejor rendimiento
             camera={{
                 position: [initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z],
                 fov: 45,
                 near: 0.1,
-                far: 50 // Reducir far plane
+                far: 30 // Reducir far plane aún más
             }}
             style={{ background: 'transparent' }}
             gl={{
                 antialias: true,
                 alpha: true,
                 powerPreference: 'high-performance',
-                stencil: false, // Desactivar stencil buffer si no se usa
+                stencil: false,
                 depth: true,
-                logarithmicDepthBuffer: false // Mejor rendimiento
+                logarithmicDepthBuffer: false,
+                preserveDrawingBuffer: false, // No preservar buffer para mejor rendimiento
+                failIfMajorPerformanceCaveat: false // Permitir software rendering como fallback
             }}
-            performance={{ min: 0.5 }} // Throttle adaptativo
+            performance={{ min: 0.5, max: 1, debounce: 200 }} // Throttle adaptativo mejorado
+            frameloop="demand" // Solo renderizar cuando hay cambios
+            flat // Desactivar tone mapping para mejor rendimiento
         >
             {/* Lighting - Optimizado para rendimiento */}
-            <ambientLight intensity={0.6} />
-            <hemisphereLight intensity={0.4} color="#ffffff" groundColor="#1e3a5f" />
+            <ambientLight intensity={0.7} />
+            <hemisphereLight intensity={0.3} color="#ffffff" groundColor="#1e3a5f" />
 
-            {/* Luz principal con sombras optimizadas */}
+            {/* Luz principal con sombras muy optimizadas */}
             <spotLight
                 position={[8, 8, 8]}
                 angle={0.4}
-                penumbra={0.5}
-                intensity={1.2}
+                penumbra={0.3}
+                intensity={1.0}
                 castShadow
-                shadow-mapSize={512} // Reducido de 1024 para mejor rendimiento
-                shadow-bias={-0.001}
-                shadow-camera-near={1}
-                shadow-camera-far={20}
+                shadow-mapSize={256} // Reducido de 512 para mejor rendimiento
+                shadow-bias={-0.002}
+                shadow-camera-near={2}
+                shadow-camera-far={15}
             />
 
             {/* Luz secundaria sin sombras */}
             <spotLight
-                position={[-8, 6, -8]}
-                angle={0.4}
-                penumbra={0.5}
-                intensity={0.6}
-                castShadow={false} // Sin sombras para mejor rendimiento
+                position={[-6, 5, -6]}
+                angle={0.5}
+                penumbra={0.4}
+                intensity={0.5}
+                castShadow={false}
             />
 
-            {/* Environment */}
-            <Environment preset={environmentMap[environment]} />
+            {/* Environment - usar preset ligero */}
+            <Environment preset={environmentMap[environment]} frames={1} />
 
-            {/* Ground shadow - Optimizado */}
+            {/* Ground shadow - Muy optimizado */}
             <ContactShadows
                 position={[0, 0, 0]}
-                opacity={0.4}
-                scale={10}
-                blur={2}
-                far={3}
-                resolution={256} // Reducido para mejor rendimiento
-                frames={1} // Solo renderizar una vez
+                opacity={0.35}
+                scale={8}
+                blur={1.5}
+                far={2.5}
+                resolution={128} // Reducido significativamente
+                frames={1}
             />
 
-            {/* Subtle floor plane - Geometría simplificada */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]} receiveShadow>
-                <circleGeometry args={[6, 32]} /> {/* Reducido de 64 segmentos */}
-                <meshStandardMaterial
-                    color="#0a1628"
-                    transparent
-                    opacity={0.7}
-                    roughness={1}
-                    metalness={0}
-                />
-            </mesh>
+            {/* Subtle floor plane - Geometría compartida */}
+            <mesh
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[0, -0.001, 0]}
+                receiveShadow
+                geometry={sharedGeometries.floor}
+                material={sharedMaterials.floor}
+            />
 
             {/* Vehicle Model */}
             <Bounds fit clip observe margin={1.2}>

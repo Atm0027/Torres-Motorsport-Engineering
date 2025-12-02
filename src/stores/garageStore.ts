@@ -63,7 +63,12 @@ export const useGarageStore = create<GarageStoreState>()(
 
             // Vehicle actions
             setCurrentVehicle: (vehicle) => {
-                set({ currentVehicle: vehicle })
+                // Resetear colores a valores por defecto al cambiar de vehículo
+                set({
+                    currentVehicle: vehicle,
+                    vehicleColors: { ...DEFAULT_VEHICLE_COLORS },
+                    vehicleFinishes: { ...DEFAULT_VEHICLE_FINISHES }
+                })
                 if (vehicle) {
                     get().recalculateMetrics()
                 }

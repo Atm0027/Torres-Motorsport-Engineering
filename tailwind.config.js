@@ -4,7 +4,33 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
+    // Optimización: solo dark mode
     darkMode: 'class',
+    // Optimización: desactivar features no usados
+    corePlugins: {
+        preflight: true,
+        // Desactivar plugins que no usamos para reducir CSS
+        container: false,
+        aspectRatio: false,
+        float: false,
+        clear: false,
+        objectFit: false,
+        objectPosition: false,
+        overscrollBehavior: false,
+        scrollSnapType: false,
+        scrollSnapAlign: false,
+        scrollSnapStop: false,
+        touchAction: false,
+        userSelect: false,
+        willChange: false,
+    },
+    // Optimización: modo JIT con safelist para clases dinámicas
+    safelist: [
+        // Clases que se generan dinámicamente
+        { pattern: /bg-torres-(primary|secondary|success|warning|danger)/ },
+        { pattern: /text-torres-(primary|secondary|success|warning|danger)/ },
+        { pattern: /border-torres-/ },
+    ],
     theme: {
         extend: {
             colors: {
@@ -39,8 +65,8 @@ export default {
                 }
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
-                mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
                 display: ['Orbitron', 'sans-serif'],
             },
             backgroundImage: {
@@ -68,7 +94,6 @@ export default {
                 'slide-down': 'slideDown 0.3s ease-out',
                 'fade-in': 'fadeIn 0.2s ease-out',
                 'spin-slow': 'spin 8s linear infinite',
-                'engine-idle': 'engineIdle 0.1s ease-in-out infinite',
             },
             keyframes: {
                 glow: {
@@ -87,12 +112,18 @@ export default {
                     '0%': { opacity: '0' },
                     '100%': { opacity: '1' },
                 },
-                engineIdle: {
-                    '0%, 100%': { transform: 'translateX(0)' },
-                    '50%': { transform: 'translateX(0.5px)' },
-                },
+            },
+            // Optimización: reducir spacing variants
+            spacing: {
+                '18': '4.5rem',
+                '88': '22rem',
             },
         },
     },
     plugins: [],
+    // Optimización para producción
+    future: {
+        hoverOnlyWhenSupported: true,
+        respectDefaultRingColorOpacity: true,
+    },
 }

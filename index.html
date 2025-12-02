@@ -4,10 +4,13 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description"
         content="Torres Motorsport Engineering - Simulador avanzado de modificación de vehículos con precisión de ingeniería" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#0a0e17" />
+
+    <!-- Performance hints -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
 
     <!-- DNS Prefetch para recursos externos -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -17,11 +20,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Preload fuente crítica - solo Inter -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
-
-    <!-- Fuente principal Inter - carga inmediata -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fuente principal Inter - subset optimizado para carga rápida -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </noscript>
 
     <!-- Orbitron - carga diferida (solo se usa en títulos) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap" as="style"
@@ -30,12 +34,33 @@
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
     </noscript>
 
-    <!-- Los modelos 3D se cargan bajo demanda cuando se necesitan -->
-
     <title>Torres Motorsport Engineering</title>
 
     <!-- Inline critical CSS para First Contentful Paint más rápido -->
     <style>
+        /* Reset crítico */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #0a0e17;
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
         /* Loading spinner crítico */
         #root:empty {
             display: flex;
@@ -45,6 +70,17 @@
             background: #0a0e17;
         }
 
+        #root:empty::before {
+            content: 'Torres Motorsport';
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: #00d4ff;
+            position: absolute;
+            margin-bottom: 80px;
+            opacity: 0.8;
+        }
+
         #root:empty::after {
             content: '';
             width: 40px;
@@ -52,13 +88,18 @@
             border: 3px solid #1e293b;
             border-top-color: #00d4ff;
             border-radius: 50%;
-            animation: spinner 0.8s linear infinite;
+            animation: spinner 0.6s linear infinite;
         }
 
         @keyframes spinner {
             to {
                 transform: rotate(360deg);
             }
+        }
+
+        /* Prevenir FOUC */
+        .dark {
+            color-scheme: dark;
         }
     </style>
 </head>
