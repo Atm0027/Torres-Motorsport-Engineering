@@ -28,6 +28,9 @@
         "zustand": "^4.5.7"
     },
     "devDependencies": {
+        "@gltf-transform/core": "^4.2.1",
+        "@gltf-transform/extensions": "^4.2.1",
+        "@gltf-transform/functions": "^4.2.1",
         "@types/react": "^18.2.37",
         "@types/react-dom": "^18.2.15",
         "@types/three": "^0.159.0",

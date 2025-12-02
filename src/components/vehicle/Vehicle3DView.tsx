@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react'
+import { useState, useRef, useCallback, useEffect, lazy, Suspense, memo, useMemo } from 'react'
 import {
     RotateCcw,
     ZoomIn,
@@ -9,23 +9,26 @@ import {
     Camera,
     Box,
     Play,
-    Pause
+    Pause,
+    Eye,
+    EyeOff
 } from 'lucide-react'
 import { Button } from '@components/ui/Button'
+import { useVehicleColors, useVehicleFinishes } from '@stores/garageStore'
 import type { Vehicle, VehicleMaterials, EnvironmentConfig } from '@/types'
 
 // Lazy load del canvas 3D para no bloquear la carga inicial
 const Vehicle3DCanvas = lazy(() => import('./Vehicle3DCanvas').then(m => ({ default: m.Vehicle3DCanvas })))
 
-// Fallback de carga para el canvas 3D
-const Canvas3DLoader = () => (
+// Fallback de carga para el canvas 3D - Memoizado
+const Canvas3DLoader = memo(() => (
     <div className="w-full h-full flex items-center justify-center bg-torres-dark-800">
         <div className="text-center">
             <div className="animate-spin w-10 h-10 border-3 border-torres-primary border-t-transparent rounded-full mx-auto mb-3" />
             <p className="text-sm text-torres-light-400">Cargando visor 3D...</p>
         </div>
     </div>
-)
+))
 
 interface Vehicle3DViewProps {
     vehicle: Vehicle
@@ -52,7 +55,7 @@ const ENVIRONMENT_PRESETS: Record<EnvironmentConfig['preset'], { label: string; 
     'showroom': { label: 'Showroom', icon: Moon }
 }
 
-export function Vehicle3DView({
+export const Vehicle3DView = memo(function Vehicle3DView({
     vehicle,
     onMaterialChange: _onMaterialChange,
     className = ''
@@ -63,6 +66,11 @@ export function Vehicle3DView({
     const [zoom, setZoom] = useState(1)
     const [cameraPreset, setCameraPreset] = useState<CameraPreset>('three-quarter')
     const [environment, setEnvironment] = useState<EnvironmentConfig['preset']>('studio')
+    const [showUI, setShowUI] = useState(true) // Mostrar/ocultar interfaz
+
+    // Obtener colores y acabados del store global
+    const vehicleColors = useVehicleColors()
+    const vehicleFinishes = useVehicleFinishes()
 
     // Resetear vista al cambiar de vehículo
     useEffect(() => {
@@ -104,8 +112,8 @@ export function Vehicle3DView({
         setCameraPreset('three-quarter')
     }, [])
 
-    // Get environment background
-    const getEnvironmentBackground = () => {
+    // Get environment background - memoizado
+    const environmentBackground = useMemo(() => {
         switch (environment) {
             case 'studio':
                 return 'bg-gradient-to-b from-torres-dark-700 to-torres-dark-900'
@@ -118,7 +126,7 @@ export function Vehicle3DView({
             default:
                 return 'bg-torres-dark-900'
         }
-    }
+    }, [environment])
 
     return (
         <div className={`vehicle-3d-view flex flex-col h-full ${className}`}>
@@ -189,13 +197,23 @@ export function Vehicle3DView({
                     >
                         <RotateCcw className="w-4 h-4" />
                     </Button>
+                    <div className="w-px h-4 bg-torres-dark-600 mx-1" />
+                    <Button
+                        variant={showUI ? 'ghost' : 'primary'}
+                        size="sm"
+                        onClick={() => setShowUI(!showUI)}
+                        title={showUI ? 'Ocultar interfaz' : 'Mostrar interfaz'}
+                        className="p-1"
+                    >
+                        {showUI ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
                 </div>
             </div>
 
             {/* 3D Canvas */}
             <div
                 ref={containerRef}
-                className={`flex-1 overflow-hidden relative ${getEnvironmentBackground()} cursor-grab active:cursor-grabbing`}
+                className={`flex-1 overflow-hidden relative ${environmentBackground} cursor-grab active:cursor-grabbing`}
                 onWheel={handleWheel}
             >
                 {/* Floor reflection */}
@@ -223,53 +241,62 @@ export function Vehicle3DView({
                             isRotating={isRotating}
                             cameraPreset={cameraPreset}
                             environment={environment}
+                            zoom={zoom}
+                            vehicleColors={vehicleColors}
+                            vehicleFinishes={vehicleFinishes}
                             onRotationChange={handleRotationChange}
                         />
                     </Suspense>
 
                     {/* Vehicle name overlay */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10">
-                        <h3 className="text-lg font-display font-bold text-torres-light-100 drop-shadow-lg">
-                            {vehicle.manufacturer} {vehicle.name}
-                        </h3>
-                        <p className="text-xs text-torres-light-400">
-                            {vehicle.year} • {vehicle.currentMetrics.horsepower} CV
-                        </p>
-                    </div>
+                    {showUI && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10">
+                            <h3 className="text-lg font-display font-bold text-torres-light-100 drop-shadow-lg">
+                                {vehicle.manufacturer} {vehicle.name}
+                            </h3>
+                            <p className="text-xs text-torres-light-400">
+                                {vehicle.year} • {vehicle.currentMetrics.horsepower} CV
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Instruction overlay */}
-                <div className="absolute top-4 right-4 flex items-center gap-2 text-xs text-torres-light-400 bg-torres-dark-900/80 px-3 py-1.5 rounded z-10">
-                    <Move className="w-3 h-3" />
-                    <span>Arrastra para rotar • Scroll para zoom</span>
-                </div>
+                {showUI && (
+                    <div className="absolute top-4 right-4 flex items-center gap-2 text-xs text-torres-light-400 bg-torres-dark-900/80 px-3 py-1.5 rounded z-10">
+                        <Move className="w-3 h-3" />
+                        <span>Arrastra para rotar • Scroll para zoom</span>
+                    </div>
+                )}
             </div>
 
             {/* Environment selector */}
-            <div className="flex items-center justify-between p-2 bg-torres-dark-800 border-t border-torres-dark-600">
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-torres-light-400">Entorno:</span>
-                    {Object.entries(ENVIRONMENT_PRESETS).map(([key, { label, icon: Icon }]) => (
-                        <button
-                            key={key}
-                            onClick={() => handleEnvironmentChange(key as EnvironmentConfig['preset'])}
-                            className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${environment === key
-                                ? 'bg-torres-primary text-white'
-                                : 'bg-torres-dark-700 text-torres-light-400 hover:bg-torres-dark-600'
-                                }`}
-                        >
-                            <Icon className="w-3 h-3" />
-                            {label}
-                        </button>
-                    ))}
-                </div>
+            {showUI && (
+                <div className="flex items-center justify-between p-2 bg-torres-dark-800 border-t border-torres-dark-600">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-torres-light-400">Entorno:</span>
+                        {Object.entries(ENVIRONMENT_PRESETS).map(([key, { label, icon: Icon }]) => (
+                            <button
+                                key={key}
+                                onClick={() => handleEnvironmentChange(key as EnvironmentConfig['preset'])}
+                                className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${environment === key
+                                    ? 'bg-torres-primary text-white'
+                                    : 'bg-torres-dark-700 text-torres-light-400 hover:bg-torres-dark-600'
+                                    }`}
+                            >
+                                <Icon className="w-3 h-3" />
+                                {label}
+                            </button>
+                        ))}
+                    </div>
 
-                <div className="flex items-center gap-2 text-xs text-torres-light-400">
-                    <span>Ángulo: {currentAzimuth}°</span>
+                    <div className="flex items-center gap-2 text-xs text-torres-light-400">
+                        <span>Ángulo: {currentAzimuth}°</span>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
-}
+})
 
 export default Vehicle3DView

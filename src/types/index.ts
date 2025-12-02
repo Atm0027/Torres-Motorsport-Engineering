@@ -406,6 +406,51 @@ export interface EventPrize {
     title?: string
 }
 
+// Tipos de acabado para la pintura
+export type FinishType = 'gloss' | 'matte' | 'satin' | 'metallic' | 'pearl' | 'chrome'
+
+// Vehicle Colors for 3D Model
+export interface VehicleColors {
+    body: string
+    wheels: string
+    calipers: string
+    interior: string
+    accents: string
+    aero: string
+    lights: string
+}
+
+// Acabados por zona
+export interface VehicleFinishes {
+    body: FinishType
+    wheels: FinishType
+    calipers: FinishType
+    interior: FinishType
+    accents: FinishType
+    aero: FinishType
+    lights: FinishType
+}
+
+export const DEFAULT_VEHICLE_COLORS: VehicleColors = {
+    body: '#1a1a2e',
+    wheels: '#4a4a4a',
+    calipers: '#dc2626',
+    interior: '#1a1a2e',
+    accents: '#00d4ff',
+    aero: '#1a1a2e',
+    lights: '#ffffff',
+}
+
+export const DEFAULT_VEHICLE_FINISHES: VehicleFinishes = {
+    body: 'gloss',
+    wheels: 'gloss',
+    calipers: 'gloss',
+    interior: 'matte',
+    accents: 'metallic',
+    aero: 'matte',
+    lights: 'gloss',
+}
+
 // UI State Types
 export interface GarageState {
     currentVehicle: Vehicle | null
@@ -415,6 +460,8 @@ export interface GarageState {
     compareMode: boolean
     compareVehicle: Vehicle | null
     savedBuilds: SavedBuild[]
+    vehicleColors: VehicleColors
+    vehicleFinishes: VehicleFinishes
 }
 
 // Saved Build for user's creations

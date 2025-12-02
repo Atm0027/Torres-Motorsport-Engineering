@@ -182,15 +182,17 @@ export function useLocalStorage<T>(
 
 /**
  * Hook para medir el rendimiento de renderizado
+ * Solo activo si DEBUG_RENDERS=true en dev
  */
-export function useRenderCount(componentName: string): void {
+export function useRenderCount(_componentName: string): void {
     const renderCount = useRef(0)
     renderCount.current++
 
     useEffect(() => {
-        if (import.meta.env.DEV) {
-            console.log(`[${componentName}] Render #${renderCount.current}`)
-        }
+        // Desactivado por defecto - descomentar para debug de renders
+        // if (import.meta.env.DEV) {
+        //     console.log(`[${_componentName}] Render #${renderCount.current}`)
+        // }
     })
 }
 

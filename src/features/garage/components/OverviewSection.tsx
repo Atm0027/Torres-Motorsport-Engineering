@@ -1,10 +1,10 @@
 import { memo } from 'react'
-import { Car, FileImage } from 'lucide-react'
+import { Car, FileImage, Gauge as GaugeIcon, Zap, Weight, Timer, Fuel, Settings, Cog } from 'lucide-react'
 import { Card } from '@components/ui/Card'
 import { Gauge } from '@components/ui/Gauge'
 import { StatBar } from '@components/ui/ProgressBar'
 import { BlueprintView, Vehicle3DView } from '@components/vehicle'
-import { formatHorsepower, formatWeight } from '@utils/formatters'
+import { formatHorsepower, formatWeight, formatNumber } from '@utils/formatters'
 import type { Vehicle, PerformanceMetrics } from '@/types'
 
 interface OverviewSectionProps {
@@ -49,37 +49,155 @@ export const OverviewSection = memo(function OverviewSection({
             case 'technical':
             default:
                 return (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
-                            <svg viewBox="0 0 400 200" className="w-full max-w-2xl h-auto">
-                                <g stroke="currentColor" fill="none" strokeWidth="2" className="text-torres-primary">
-                                    <path d="M50,120 L80,120 L100,80 L300,80 L320,120 L350,120 L350,140 L50,140 Z" />
-                                    <path d="M110,80 L130,50 L270,50 L290,80" />
-                                    <line x1="200" y1="50" x2="200" y2="80" />
-                                    <circle cx="100" cy="140" r="25" />
-                                    <circle cx="100" cy="140" r="15" />
-                                    <circle cx="300" cy="140" r="25" />
-                                    <circle cx="300" cy="140" r="15" />
-                                    <rect x="60" y="100" width="30" height="15" rx="2" />
-                                    <rect x="310" y="100" width="30" height="15" rx="2" />
-                                </g>
-
-                                {showOverlay && (
-                                    <g className="text-torres-light-400" fontSize="10">
-                                        <text x="200" y="30" textAnchor="middle" fill="currentColor">
-                                            {vehicle.manufacturer} {vehicle.name}
-                                        </text>
-                                        <text x="200" y="180" textAnchor="middle" fill="currentColor">
-                                            {formatHorsepower(metrics?.horsepower ?? 0)} | {formatWeight(metrics?.weight ?? 0)}
-                                        </text>
-                                    </g>
-                                )}
-                            </svg>
-
-                            <p className="text-torres-light-400 mt-4">
-                                Vista Técnica - {vehicle.year} {vehicle.manufacturer} {vehicle.name}
+                    <div className="w-full h-full p-6 overflow-auto">
+                        {/* Header */}
+                        <div className="text-center mb-6">
+                            <h2 className="text-2xl font-display font-bold text-torres-primary">
+                                FICHA TÉCNICA
+                            </h2>
+                            <p className="text-torres-light-300 text-lg">
+                                {vehicle.year} {vehicle.manufacturer} {vehicle.name}
                             </p>
                         </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                            {/* Columna Izquierda - Motor */}
+                            <Card className="p-4 bg-torres-dark-800/80 border-torres-primary/30">
+                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-torres-dark-600">
+                                    <Zap className="w-5 h-5 text-torres-primary" />
+                                    <h3 className="font-semibold text-torres-light-100">MOTOR</h3>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Código</span>
+                                        <span className="text-torres-light-100 font-mono">{vehicle.engineConfig?.code || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Configuración</span>
+                                        <span className="text-torres-light-100">
+                                            {vehicle.engineConfig?.configuration?.toUpperCase() || 'N/A'} {vehicle.engineConfig?.cylinders || ''}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Cilindrada</span>
+                                        <span className="text-torres-light-100">{vehicle.engineConfig?.displacement || 0}L</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Aspiración</span>
+                                        <span className="text-torres-light-100 capitalize">{vehicle.engineConfig?.aspiration || 'Natural'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Potencia Base</span>
+                                        <span className="text-torres-primary font-bold">{formatNumber(vehicle.baseStats?.horsepower || 0)} CV</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Par Motor Base</span>
+                                        <span className="text-torres-secondary font-bold">{formatNumber(vehicle.baseStats?.torque || 0)} Nm</span>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* Columna Central - Rendimiento Actual */}
+                            <Card className="p-4 bg-torres-dark-800/80 border-torres-success/30">
+                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-torres-dark-600">
+                                    <GaugeIcon className="w-5 h-5 text-torres-success" />
+                                    <h3 className="font-semibold text-torres-light-100">RENDIMIENTO ACTUAL</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="text-center p-3 bg-torres-dark-900/50 rounded-lg">
+                                        <div className="text-3xl font-bold text-torres-primary">
+                                            {formatNumber(metrics?.horsepower || 0)}
+                                        </div>
+                                        <div className="text-xs text-torres-light-400">CV</div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div className="text-center p-2 bg-torres-dark-900/30 rounded">
+                                            <div className="text-lg font-bold text-torres-secondary">{formatNumber(metrics?.torque || 0)}</div>
+                                            <div className="text-xs text-torres-light-400">Nm</div>
+                                        </div>
+                                        <div className="text-center p-2 bg-torres-dark-900/30 rounded">
+                                            <div className="text-lg font-bold text-torres-light-100">{formatNumber(metrics?.weight || 0)}</div>
+                                            <div className="text-xs text-torres-light-400">kg</div>
+                                        </div>
+                                        <div className="text-center p-2 bg-torres-dark-900/30 rounded">
+                                            <div className="text-lg font-bold text-green-400">{metrics?.zeroToSixty?.toFixed(1) || '0.0'}s</div>
+                                            <div className="text-xs text-torres-light-400">0-100 km/h</div>
+                                        </div>
+                                        <div className="text-center p-2 bg-torres-dark-900/30 rounded">
+                                            <div className="text-lg font-bold text-cyan-400">{formatNumber(metrics?.topSpeed || 0)}</div>
+                                            <div className="text-xs text-torres-light-400">km/h máx</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-center p-2 bg-torres-dark-900/30 rounded">
+                                        <div className="text-sm font-bold text-yellow-400">
+                                            {((metrics?.horsepower || 0) / ((metrics?.weight || 1) / 1000)).toFixed(1)} CV/ton
+                                        </div>
+                                        <div className="text-xs text-torres-light-400">Relación Peso/Potencia</div>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* Columna Derecha - Chasis y Transmisión */}
+                            <Card className="p-4 bg-torres-dark-800/80 border-torres-secondary/30">
+                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-torres-dark-600">
+                                    <Cog className="w-5 h-5 text-torres-secondary" />
+                                    <h3 className="font-semibold text-torres-light-100">CHASIS</h3>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Tracción</span>
+                                        <span className="text-torres-light-100">{vehicle.drivetrain || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Transmisión</span>
+                                        <span className="text-torres-light-100">{vehicle.transmission || 'Manual'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Peso Base</span>
+                                        <span className="text-torres-light-100">{formatNumber(vehicle.baseStats?.weight || 0)} kg</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Distribución</span>
+                                        <span className="text-torres-light-100">{vehicle.weightDistribution || '50/50'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Plataforma</span>
+                                        <span className="text-torres-light-100 font-mono">{vehicle.platform || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-torres-light-400">Categoría</span>
+                                        <span className="text-torres-light-100 capitalize">{vehicle.category || 'Sport'}</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+
+                        {/* Partes Instaladas */}
+                        {vehicle.installedParts && vehicle.installedParts.length > 0 && (
+                            <Card className="mt-6 p-4 bg-torres-dark-800/80 max-w-6xl mx-auto">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Settings className="w-5 h-5 text-torres-primary" />
+                                    <h3 className="font-semibold text-torres-light-100">
+                                        MODIFICACIONES ({vehicle.installedParts.length})
+                                    </h3>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {vehicle.installedParts.slice(0, 10).map((partId, index) => (
+                                        <span
+                                            key={index}
+                                            className="px-2 py-1 text-xs bg-torres-primary/20 text-torres-primary rounded border border-torres-primary/30"
+                                        >
+                                            {partId}
+                                        </span>
+                                    ))}
+                                    {vehicle.installedParts.length > 10 && (
+                                        <span className="px-2 py-1 text-xs bg-torres-dark-600 text-torres-light-400 rounded">
+                                            +{vehicle.installedParts.length - 10} más
+                                        </span>
+                                    )}
+                                </div>
+                            </Card>
+                        )}
                     </div>
                 )
         }
@@ -91,16 +209,12 @@ export const OverviewSection = memo(function OverviewSection({
                 {renderViewContent()}
             </div>
 
-            {/* View mode indicator - solo para vistas no-3D */}
-            {viewMode !== '3d' && (
+            {/* View mode indicator - solo para blueprint */}
+            {viewMode === 'blueprint' && (
                 <div className="absolute top-4 left-4 flex items-center gap-2 z-20">
-                    <div className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 ${viewMode === 'blueprint'
-                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                        : 'bg-torres-dark-700 text-torres-light-400'
-                        }`}>
-                        {viewMode === 'blueprint' && <FileImage className="w-3.5 h-3.5" />}
-                        {viewMode === 'technical' && <Car className="w-3.5 h-3.5" />}
-                        {viewMode === 'blueprint' ? 'Planos 2D' : 'Vista Técnica'}
+                    <div className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <FileImage className="w-3.5 h-3.5" />
+                        Planos 2D
                     </div>
 
                     {vehicle.installedParts.length > 0 && (
@@ -111,8 +225,8 @@ export const OverviewSection = memo(function OverviewSection({
                 </div>
             )}
 
-            {/* Stats panel - solo para vistas no-3D */}
-            {metrics && showOverlay && viewMode !== '3d' && (
+            {/* Stats panel - solo para blueprint */}
+            {metrics && showOverlay && viewMode === 'blueprint' && (
                 <div className="absolute bottom-4 left-4 right-4 flex gap-4 z-20">
                     <Card className="p-3 flex-1" padding="none">
                         <div className="flex items-center gap-6">

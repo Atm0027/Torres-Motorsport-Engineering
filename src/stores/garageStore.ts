@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
-import type { Vehicle, Part, PartCategory, GarageState, InstalledPart, TuningSettings, SavedBuild } from '@/types'
+import type { Vehicle, Part, PartCategory, GarageState, InstalledPart, TuningSettings, SavedBuild, VehicleColors, VehicleFinishes, FinishType } from '@/types'
+import { DEFAULT_VEHICLE_COLORS, DEFAULT_VEHICLE_FINISHES } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
 import { calculatePerformance } from '@utils/physics'
 import { checkCompatibility } from '@utils/compatibility'
@@ -33,6 +34,16 @@ interface GarageStoreState extends GarageState {
     deleteBuild: (buildId: string) => void
     loadBuild: (buildId: string) => void
 
+    // Color actions
+    setVehicleColor: (zone: keyof VehicleColors, color: string) => void
+    setVehicleColors: (colors: Partial<VehicleColors>) => void
+    resetVehicleColors: () => void
+
+    // Finish actions
+    setVehicleFinish: (zone: keyof VehicleFinishes, finish: FinishType) => void
+    setVehicleFinishes: (finishes: Partial<VehicleFinishes>) => void
+    resetVehicleFinishes: () => void
+
     // Utility
     recalculateMetrics: () => void
 }
@@ -47,6 +58,8 @@ export const useGarageStore = create<GarageStoreState>()(
             compareMode: false,
             compareVehicle: null,
             savedBuilds: [],
+            vehicleColors: { ...DEFAULT_VEHICLE_COLORS },
+            vehicleFinishes: { ...DEFAULT_VEHICLE_FINISHES },
 
             // Vehicle actions
             setCurrentVehicle: (vehicle) => {
@@ -265,6 +278,52 @@ export const useGarageStore = create<GarageStoreState>()(
                 }
             },
 
+            // Color actions
+            setVehicleColor: (zone, color) => {
+                set((state) => ({
+                    vehicleColors: {
+                        ...state.vehicleColors,
+                        [zone]: color
+                    }
+                }))
+            },
+
+            setVehicleColors: (colors) => {
+                set((state) => ({
+                    vehicleColors: {
+                        ...state.vehicleColors,
+                        ...colors
+                    }
+                }))
+            },
+
+            resetVehicleColors: () => {
+                set({ vehicleColors: { ...DEFAULT_VEHICLE_COLORS } })
+            },
+
+            // Finish actions
+            setVehicleFinish: (zone, finish) => {
+                set((state) => ({
+                    vehicleFinishes: {
+                        ...state.vehicleFinishes,
+                        [zone]: finish
+                    }
+                }))
+            },
+
+            setVehicleFinishes: (finishes) => {
+                set((state) => ({
+                    vehicleFinishes: {
+                        ...state.vehicleFinishes,
+                        ...finishes
+                    }
+                }))
+            },
+
+            resetVehicleFinishes: () => {
+                set({ vehicleFinishes: { ...DEFAULT_VEHICLE_FINISHES } })
+            },
+
             // Utility
             recalculateMetrics: () => {
                 const { currentVehicle } = get()
@@ -295,6 +354,8 @@ export const useGarageStore = create<GarageStoreState>()(
                 currentVehicle: state.currentVehicle,
                 viewMode: state.viewMode,
                 savedBuilds: state.savedBuilds,
+                vehicleColors: state.vehicleColors,
+                vehicleFinishes: state.vehicleFinishes,
             }),
         }
     )
@@ -319,6 +380,12 @@ export const useSelectedPart = () => useGarageStore((state) => state.selectedPar
 // Selector para builds guardados
 export const useSavedBuilds = () => useGarageStore((state) => state.savedBuilds)
 
+// Selector para colores del vehículo
+export const useVehicleColors = () => useGarageStore((state) => state.vehicleColors)
+
+// Selector para acabados del vehículo
+export const useVehicleFinishes = () => useGarageStore((state) => state.vehicleFinishes)
+
 // Selector para métricas actuales (con comparación superficial)
 export const useCurrentMetrics = () => useGarageStore(
     useShallow((state) => state.currentVehicle?.currentMetrics)
@@ -327,6 +394,24 @@ export const useCurrentMetrics = () => useGarageStore(
 // Selector para piezas instaladas
 export const useInstalledParts = () => useGarageStore(
     useShallow((state) => state.currentVehicle?.installedParts ?? [])
+)
+
+// Selector para acciones de colores
+export const useVehicleColorActions = () => useGarageStore(
+    useShallow((state) => ({
+        setVehicleColor: state.setVehicleColor,
+        setVehicleColors: state.setVehicleColors,
+        resetVehicleColors: state.resetVehicleColors,
+    }))
+)
+
+// Selector para acciones de acabados
+export const useVehicleFinishActions = () => useGarageStore(
+    useShallow((state) => ({
+        setVehicleFinish: state.setVehicleFinish,
+        setVehicleFinishes: state.setVehicleFinishes,
+        resetVehicleFinishes: state.resetVehicleFinishes,
+    }))
 )
 
 // Selector para acciones (nunca cambian)

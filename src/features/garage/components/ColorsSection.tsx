@@ -1,21 +1,12 @@
-import { useState, useCallback, memo } from 'react'
+import React, { useCallback, memo } from 'react'
 import { RotateCcw, Save, Check, Car } from 'lucide-react'
 import { Button } from '@components/ui/Button'
 import { useNotify } from '@stores/uiStore'
-import type { Vehicle } from '@/types'
-
-// Tipos
-interface VehicleColors {
-    body: string
-    wheels: string
-    calipers: string
-    interior: string
-    accents: string
-    aero: string
-    lights: string
-}
+import { useVehicleColors, useVehicleColorActions, useVehicleFinishes, useVehicleFinishActions } from '@stores/garageStore'
+import type { Vehicle, VehicleColors, VehicleFinishes, FinishType } from '@/types'
 
 type ColorZone = keyof VehicleColors
+type FinishZone = keyof VehicleFinishes
 
 // Constantes
 const COLOR_ZONES: { id: ColorZone; name: string; description: string; icon: string }[] = [
@@ -56,43 +47,36 @@ const FINISHES = [
     { id: 'chrome', name: 'Cromado', description: 'Efecto espejo cromado' },
 ]
 
-const DEFAULT_COLORS: VehicleColors = {
-    body: '#1a1a2e',
-    wheels: '#4a4a4a',
-    calipers: '#dc2626',
-    interior: '#1a1a2e',
-    accents: '#00d4ff',
-    aero: '#1a1a2e',
-    lights: '#ffffff',
-}
-
 interface ColorsSectionProps {
     vehicle: Vehicle | null
 }
 
 export const ColorsSection = memo(function ColorsSection({ vehicle }: ColorsSectionProps) {
     const notify = useNotify()
-    const [selectedZone, setSelectedZone] = useState<ColorZone>('body')
-    const [selectedFinish, setSelectedFinish] = useState('gloss')
-    const [colors, setColors] = useState<VehicleColors>(DEFAULT_COLORS)
+    const colors = useVehicleColors()
+    const finishes = useVehicleFinishes()
+    const { setVehicleColor, resetVehicleColors } = useVehicleColorActions()
+    const { setVehicleFinish, resetVehicleFinishes } = useVehicleFinishActions()
+    const [selectedZone, setSelectedZone] = React.useState<ColorZone>('body')
 
     const handleColorChange = useCallback((color: string) => {
-        setColors(prev => ({ ...prev, [selectedZone]: color }))
-    }, [selectedZone])
+        setVehicleColor(selectedZone, color)
+    }, [selectedZone, setVehicleColor])
 
     const handleApplyAll = useCallback(() => {
-        notify.success('Colores aplicados', 'Todos los colores han sido guardados')
+        notify.success('Colores aplicados', 'Todos los colores y acabados han sido guardados')
     }, [notify])
 
     const handleResetColors = useCallback(() => {
-        setColors(DEFAULT_COLORS)
-        notify.info('Colores reseteados', 'Se han restaurado los colores por defecto')
-    }, [notify])
+        resetVehicleColors()
+        resetVehicleFinishes()
+        notify.info('Colores reseteados', 'Se han restaurado los colores y acabados por defecto')
+    }, [notify, resetVehicleColors, resetVehicleFinishes])
 
     const handleSelectFinish = useCallback((finishId: string, finishName: string) => {
-        setSelectedFinish(finishId)
-        notify.info('Acabado seleccionado', finishName)
-    }, [notify])
+        setVehicleFinish(selectedZone as FinishZone, finishId as FinishType)
+        notify.info('Acabado aplicado', `${finishName} en ${COLOR_ZONES.find(z => z.id === selectedZone)?.name}`)
+    }, [notify, selectedZone, setVehicleFinish])
 
     const handleApplyColor = useCallback(() => {
         const zoneName = COLOR_ZONES.find(z => z.id === selectedZone)?.name
@@ -124,6 +108,7 @@ export const ColorsSection = memo(function ColorsSection({ vehicle }: ColorsSect
                 <ZoneSelector
                     selectedZone={selectedZone}
                     colors={colors}
+                    finishes={finishes}
                     onSelectZone={setSelectedZone}
                 />
 
@@ -138,7 +123,9 @@ export const ColorsSection = memo(function ColorsSection({ vehicle }: ColorsSect
 
                 {/* Acabados */}
                 <FinishSelector
-                    selectedFinish={selectedFinish}
+                    selectedZone={selectedZone}
+                    zoneName={selectedZoneData?.name || ''}
+                    selectedFinish={finishes[selectedZone]}
                     onSelectFinish={handleSelectFinish}
                 />
             </div>
@@ -204,14 +191,20 @@ const ColorsSectionHeader = memo(function ColorsSectionHeader({
 interface ZoneSelectorProps {
     selectedZone: ColorZone
     colors: VehicleColors
+    finishes: VehicleFinishes
     onSelectZone: (zone: ColorZone) => void
 }
 
 const ZoneSelector = memo(function ZoneSelector({
     selectedZone,
     colors,
+    finishes,
     onSelectZone
 }: ZoneSelectorProps) {
+    const getFinishLabel = (finishId: string) => {
+        return FINISHES.find(f => f.id === finishId)?.name || finishId
+    }
+
     return (
         <div>
             <h3 className="font-display text-lg font-semibold text-torres-light-100 mb-4">
@@ -223,8 +216,8 @@ const ZoneSelector = memo(function ZoneSelector({
                         key={zone.id}
                         onClick={() => onSelectZone(zone.id)}
                         className={`w-full p-4 rounded-xl text-left transition-all flex items-center gap-3 ${selectedZone === zone.id
-                                ? 'bg-torres-primary/20 border-2 border-torres-primary'
-                                : 'bg-torres-dark-700 border-2 border-transparent hover:border-torres-dark-500'
+                            ? 'bg-torres-primary/20 border-2 border-torres-primary'
+                            : 'bg-torres-dark-700 border-2 border-transparent hover:border-torres-dark-500'
                             }`}
                     >
                         <div
@@ -235,7 +228,9 @@ const ZoneSelector = memo(function ZoneSelector({
                         </div>
                         <div className="flex-1">
                             <p className="font-semibold text-torres-light-100">{zone.name}</p>
-                            <p className="text-xs text-torres-light-400">{zone.description}</p>
+                            <p className="text-xs text-torres-light-400">
+                                {zone.description} • <span className="text-torres-primary">{getFinishLabel(finishes[zone.id])}</span>
+                            </p>
                         </div>
                         {selectedZone === zone.id && (
                             <Check className="w-5 h-5 text-torres-primary" />
@@ -288,8 +283,8 @@ const ColorPicker = memo(function ColorPicker({
                         key={preset.color}
                         onClick={() => onColorChange(preset.color)}
                         className={`group relative aspect-square rounded-lg border-2 transition-all ${currentColor === preset.color
-                                ? 'border-torres-primary scale-105 shadow-lg shadow-torres-primary/30'
-                                : 'border-transparent hover:border-torres-dark-400'
+                            ? 'border-torres-primary scale-105 shadow-lg shadow-torres-primary/30'
+                            : 'border-transparent hover:border-torres-dark-400'
                             }`}
                         style={{ backgroundColor: preset.color }}
                         title={preset.name}
@@ -325,18 +320,21 @@ const ColorPicker = memo(function ColorPicker({
 })
 
 interface FinishSelectorProps {
+    selectedZone: ColorZone
+    zoneName: string
     selectedFinish: string
     onSelectFinish: (finishId: string, finishName: string) => void
 }
 
 const FinishSelector = memo(function FinishSelector({
+    zoneName,
     selectedFinish,
     onSelectFinish
 }: FinishSelectorProps) {
     return (
         <div>
             <h3 className="font-display text-lg font-semibold text-torres-light-100 mb-4">
-                Acabado
+                Acabado para {zoneName}
             </h3>
             <div className="space-y-2">
                 {FINISHES.map(finish => (
@@ -344,12 +342,19 @@ const FinishSelector = memo(function FinishSelector({
                         key={finish.id}
                         onClick={() => onSelectFinish(finish.id, finish.name)}
                         className={`w-full p-4 rounded-xl text-left transition-all ${selectedFinish === finish.id
-                                ? 'bg-torres-primary/20 border-2 border-torres-primary'
-                                : 'bg-torres-dark-700 border-2 border-transparent hover:border-torres-dark-500'
+                            ? 'bg-torres-primary/20 border-2 border-torres-primary'
+                            : 'bg-torres-dark-700 border-2 border-transparent hover:border-torres-dark-500'
                             }`}
                     >
-                        <p className="font-semibold text-torres-light-100">{finish.name}</p>
-                        <p className="text-xs text-torres-light-400">{finish.description}</p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="font-semibold text-torres-light-100">{finish.name}</p>
+                                <p className="text-xs text-torres-light-400">{finish.description}</p>
+                            </div>
+                            {selectedFinish === finish.id && (
+                                <Check className="w-5 h-5 text-torres-primary" />
+                            )}
+                        </div>
                     </button>
                 ))}
             </div>
