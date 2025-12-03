@@ -1,6 +1,23 @@
-name = "torres-motorsport"
-compatibility_date = "2024-01-01"
-pages_build_output_dir = "./dist"
+# ============================================
+# TORRES MOTORSPORT ENGINEERING
+# Configuración de Cloudflare Pages
+# ============================================
 
-[placement]
-mode = "smart"
+name = "torres-motorsport-engineering"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-12-03"
+
+# Variables de entorno globales (heredadas por todos los environments)
+[vars]
+VITE_SUPABASE_URL = "https://gldplzkjoadzgijzfoqx.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHBsemtqb2Fkemdpanpmb3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzM1MDcsImV4cCI6MjA4MDM0OTUwN30.eDPxBkjVEKULvKyC6sq-hFiazRPr8hWgvyUr5kxHIYQ"
+
+# Configuración de producción
+[env.production.vars]
+VITE_SUPABASE_URL = "https://gldplzkjoadzgijzfoqx.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHBsemtqb2Fkemdpanpmb3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzM1MDcsImV4cCI6MjA4MDM0OTUwN30.eDPxBkjVEKULvKyC6sq-hFiazRPr8hWgvyUr5kxHIYQ"
+
+# Configuración de preview (para PRs y branches)
+[env.preview.vars]
+VITE_SUPABASE_URL = "https://gldplzkjoadzgijzfoqx.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHBsemtqb2Fkemdpanpmb3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzM1MDcsImV4cCI6MjA4MDM0OTUwN30.eDPxBkjVEKULvKyC6sq-hFiazRPr8hWgvyUr5kxHIYQ"
