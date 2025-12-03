@@ -237,22 +237,24 @@ EnvironmentFloor.displayName = 'EnvironmentFloor'
 // tengan su frente apuntando hacia +Z (hacia la cámara inicial).
 //
 // El sistema de cámara orbitará alrededor del modelo centrado en el origen.
+// Formato: { x, y, z } en GRADOS (rotación Euler)
 
-const MODEL_INITIAL_ROTATION: Record<string, number> = {
-    // Rotación inicial Y en grados para corregir la orientación del modelo GLB
-    'mazda-rx7-fd': 90,         // Modelo viene orientado hacia -X
-    'nissan-skyline-r34': 180,  // Modelo viene orientado hacia -Z
-    'toyota-supra-a80': 90,     // Modelo viene orientado hacia -X
-    'honda-nsx': 180,           // Modelo viene orientado hacia -Z
-    'mitsubishi-evo-ix': 180,   // Modelo viene orientado hacia -Z
-    'subaru-impreza-sti': 0,    // Sin rotación - usamos offset de cámara
-    // Modelos nuevos - frente hacia +X, rotar 90° para que apunte a +Z
-    'bmw-m3-e46': 90,
-    'porsche-911-gt3-997': 90,
-    'mercedes-amg-gtr': 90,
-    'ford-mustang-gt500': 90,
-    'chevrolet-camaro-zl1': 90,
-    'dodge-challenger-hellcat': 90
+const MODEL_INITIAL_ROTATION: Record<string, { x: number; y: number; z: number }> = {
+    // JDM Classics - orientaciones originales
+    'mazda-rx7-fd': { x: 0, y: 90, z: 0 },         // Modelo viene orientado hacia -X
+    'nissan-skyline-r34': { x: 0, y: 180, z: 0 },  // Modelo viene orientado hacia -Z
+    'toyota-supra-a80': { x: 0, y: 90, z: 0 },     // Modelo viene orientado hacia -X
+    'honda-nsx': { x: 0, y: 180, z: 0 },           // Modelo viene orientado hacia -Z
+    'mitsubishi-evo-ix': { x: 0, y: 180, z: 0 },   // Modelo viene orientado hacia -Z
+    'subaru-impreza-sti': { x: 0, y: 0, z: 0 },    // Sin rotación - usamos offset de cámara
+    // Europeos
+    'bmw-m3-e46': { x: -90, y: 0, z: -90 },        // Modelo está de lado (tumbado)
+    'porsche-911-gt3-997': { x: 0, y: 90, z: 0 },  // OK con rotación Y
+    'mercedes-amg-gtr': { x: 0, y: 90, z: 0 },     // OK con rotación Y
+    // Americanos - modelos vienen de lado o inclinados
+    'ford-mustang-gt500': { x: -90, y: 0, z: 0 },  // Inclinado hacia abajo
+    'chevrolet-camaro-zl1': { x: 0, y: 90, z: 0 }, // OK
+    'dodge-challenger-hellcat': { x: -90, y: 0, z: -90 }  // De lado (tumbado)
 }
 
 // Offset de ángulo azimutal por vehículo para ajustar las vistas de cámara
@@ -730,8 +732,10 @@ function LoadedVehicleModel({
         const size = new THREE.Vector3()
 
         // 1. PRIMERO aplicar rotación inicial (antes de calcular centrado)
-        const initialRotation = MODEL_INITIAL_ROTATION[vehicleId] ?? 0
-        scene.rotation.y = (initialRotation * Math.PI) / 180
+        const initialRotation = MODEL_INITIAL_ROTATION[vehicleId] ?? { x: 0, y: 0, z: 0 }
+        scene.rotation.x = (initialRotation.x * Math.PI) / 180
+        scene.rotation.y = (initialRotation.y * Math.PI) / 180
+        scene.rotation.z = (initialRotation.z * Math.PI) / 180
         scene.updateMatrixWorld(true) // Forzar actualización de matrices
 
         // 2. Calculate bounding box DESPUÉS de rotar
