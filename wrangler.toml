@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler.json",
+  "name": "torres-motorsport",
+  "compatibility_date": "2024-01-01",
+  "pages_build_output_dir": "./dist",
+  "placement": {
+    "mode": "smart"
+  }
+}

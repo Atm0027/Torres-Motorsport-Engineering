@@ -209,5 +209,99 @@ export function usePrevious<T>(value: T): T | undefined {
     return ref.current
 }
 
+/**
+ * Hook para precargar recursos en idle time (optimizado para CDN)
+ * Precarga imágenes, modelos 3D u otros recursos cuando el navegador está inactivo
+ */
+export function useIdlePreload(urls: string[], priority: 'high' | 'low' = 'low') {
+    const preloadedRef = useRef<Set<string>>(new Set())
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+
+        const urlsToPreload = urls.filter(url => !preloadedRef.current.has(url))
+        if (urlsToPreload.length === 0) return
+
+        const preloadUrl = (url: string) => {
+            if (preloadedRef.current.has(url)) return
+
+            // Determinar tipo de recurso
+            const ext = url.split('.').pop()?.toLowerCase()
+
+            if (ext === 'glb' || ext === 'gltf') {
+                // Precargar modelos 3D con fetch
+                fetch(url, {
+                    method: 'GET',
+                    cache: 'force-cache',
+                    priority: priority === 'high' ? 'high' : 'low'
+                } as RequestInit).catch(() => { })
+            } else if (['jpg', 'jpeg', 'png', 'webp', 'avif', 'svg'].includes(ext || '')) {
+                // Precargar imágenes
+                const img = new Image()
+                img.src = url
+            } else if (ext === 'hdr') {
+                // Precargar HDR con fetch
+                fetch(url, { cache: 'force-cache' }).catch(() => { })
+            }
+
+            preloadedRef.current.add(url)
+        }
+
+        // Usar requestIdleCallback si disponible, sino setTimeout
+        if ('requestIdleCallback' in window) {
+            const idleId = requestIdleCallback(() => {
+                urlsToPreload.forEach(preloadUrl)
+            }, { timeout: priority === 'high' ? 1000 : 5000 })
+
+            return () => cancelIdleCallback(idleId)
+        } else {
+            const timeoutId = setTimeout(() => {
+                urlsToPreload.forEach(preloadUrl)
+            }, priority === 'high' ? 100 : 2000)
+
+            return () => clearTimeout(timeoutId)
+        }
+    }, [urls, priority])
+}
+
+/**
+ * Hook para network-aware loading
+ * Reduce calidad/cantidad de recursos en conexiones lentas
+ */
+export function useNetworkAwareLoading() {
+    const [connectionType, setConnectionType] = useState<'fast' | 'slow' | 'offline'>('fast')
+
+    useEffect(() => {
+        if (typeof navigator === 'undefined') return
+
+        const updateConnectionType = () => {
+            const connection = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection
+
+            if (!navigator.onLine) {
+                setConnectionType('offline')
+            } else if (connection?.saveData || connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g') {
+                setConnectionType('slow')
+            } else {
+                setConnectionType('fast')
+            }
+        }
+
+        updateConnectionType()
+        window.addEventListener('online', updateConnectionType)
+        window.addEventListener('offline', updateConnectionType)
+
+        const connection = (navigator as Navigator & { connection?: EventTarget }).connection
+        connection?.addEventListener?.('change', updateConnectionType)
+
+        return () => {
+            window.removeEventListener('online', updateConnectionType)
+            window.removeEventListener('offline', updateConnectionType)
+            connection?.removeEventListener?.('change', updateConnectionType)
+        }
+    }, [])
+
+    return connectionType
+}
+
 // Re-export the vehicle render hook
 export { useVehicleRender } from './useVehicleRender'

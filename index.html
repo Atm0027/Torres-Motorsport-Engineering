@@ -12,6 +12,9 @@
     <!-- Performance hints -->
     <meta http-equiv="x-dns-prefetch-control" content="on">
 
+    <!-- Cache Control para Cloudflare -->
+    <meta http-equiv="Cache-Control" content="public, max-age=0, must-revalidate">
+
     <!-- DNS Prefetch para recursos externos -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
@@ -19,6 +22,9 @@
     <!-- Preconnect para fonts (mejora TTFB) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Preload critical assets para Cloudflare CDN -->
+    <link rel="preload" href="/environments/studio.hdr" as="fetch" crossorigin="anonymous" fetchpriority="low">
 
     <!-- Fuente principal Inter - subset optimizado para carga rápida -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"
