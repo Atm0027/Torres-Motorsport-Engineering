@@ -50,16 +50,24 @@ export default defineConfig(({ mode }) => ({
             output: {
                 manualChunks: (id) => {
                     if (id.includes('node_modules')) {
-                        // React debe ir todo junto para evitar problemas de inicialización
-                        if (id.includes('react-dom') || id.includes('/react/') || id.includes('react/') || id.includes('scheduler')) {
+                        // React y todas sus dependencias juntas para evitar problemas de inicialización
+                        if (
+                            id.includes('react-dom') ||
+                            id.includes('/react/') ||
+                            id.includes('react/') ||
+                            id.includes('scheduler') ||
+                            id.includes('@react-three/fiber') ||
+                            id.includes('@react-three/drei') ||
+                            id.includes('react-reconciler') ||
+                            id.includes('its-fine') ||
+                            id.includes('react-use-measure')
+                        ) {
                             return 'vendor-react'
                         }
 
                         if (id.includes('react-router')) return 'vendor-react-router'
 
-                        // Three.js - dividir en chunks separados
-                        if (id.includes('@react-three/drei')) return 'vendor-drei'
-                        if (id.includes('@react-three/fiber')) return 'vendor-r3f'
+                        // Three.js core (sin React bindings)
                         if (id.includes('three/')) return 'vendor-three'
 
                         // UI libraries
