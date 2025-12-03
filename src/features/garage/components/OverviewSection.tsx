@@ -1,11 +1,21 @@
-import { memo } from 'react'
+import { memo, Suspense } from 'react'
 import { FileImage, Gauge as GaugeIcon, Zap, Settings, Cog } from 'lucide-react'
 import { Card } from '@components/ui/Card'
 import { Gauge } from '@components/ui/Gauge'
 import { StatBar } from '@components/ui/ProgressBar'
-import { BlueprintView, Vehicle3DView } from '@components/vehicle'
+import { BlueprintView, Vehicle3DViewLazy } from '@components/vehicle'
 import { formatNumber } from '@utils/formatters'
 import type { Vehicle, PerformanceMetrics } from '@/types'
+
+// Loader para el visor 3D
+const Viewer3DLoader = () => (
+    <div className="w-full h-full flex items-center justify-center bg-torres-dark-800">
+        <div className="text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-torres-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-torres-light-400">Cargando visor 3D...</p>
+        </div>
+    </div>
+)
 
 interface OverviewSectionProps {
     vehicle: Vehicle | null
@@ -32,10 +42,12 @@ export const OverviewSection = memo(function OverviewSection({
         switch (viewMode) {
             case '3d':
                 return (
-                    <Vehicle3DView
-                        vehicle={vehicle}
-                        className="w-full h-full"
-                    />
+                    <Suspense fallback={<Viewer3DLoader />}>
+                        <Vehicle3DViewLazy
+                            vehicle={vehicle}
+                            className="w-full h-full"
+                        />
+                    </Suspense>
                 )
 
             case 'blueprint':

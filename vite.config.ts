@@ -48,12 +48,27 @@ export default defineConfig(({ mode }) => ({
         },
         rollupOptions: {
             output: {
-                manualChunks: {
-                    // Chunks estáticos más predecibles
-                    'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-                    'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
-                    'vendor-ui': ['framer-motion', 'lucide-react'],
-                    'vendor-state': ['zustand']
+                manualChunks: (id) => {
+                    // Separar Three.js en chunks más pequeños
+                    if (id.includes('node_modules')) {
+                        // React core
+                        if (id.includes('react-dom')) return 'vendor-react-dom'
+                        if (id.includes('react-router')) return 'vendor-react-router'
+                        if (id.includes('/react/') || id.includes('react/')) return 'vendor-react'
+
+                        // Three.js - dividir en chunks separados
+                        if (id.includes('@react-three/drei')) return 'vendor-drei'
+                        if (id.includes('@react-three/fiber')) return 'vendor-r3f'
+                        if (id.includes('three/')) return 'vendor-three'
+
+                        // UI libraries
+                        if (id.includes('framer-motion')) return 'vendor-motion'
+                        if (id.includes('lucide-react')) return 'vendor-icons'
+
+                        // State
+                        if (id.includes('zustand')) return 'vendor-state'
+                    }
+                    return undefined
                 },
                 chunkFileNames: 'js/[name]-[hash:8].js',
                 entryFileNames: 'js/[name]-[hash:8].js',
@@ -72,7 +87,8 @@ export default defineConfig(({ mode }) => ({
                 }
             }
         },
-        chunkSizeWarningLimit: 600,
+        // Three.js es inherentemente grande (~655KB), ajustamos el límite
+        chunkSizeWarningLimit: 700,
         target: 'esnext',
         cssCodeSplit: true,
         cssMinify: 'lightningcss',
