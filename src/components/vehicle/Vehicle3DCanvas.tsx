@@ -36,8 +36,8 @@ const VEHICLE_IDS = [
 ]
 
 // Mapeo de rutas de modelos (algunos usan base.glb, otros model.glb)
-// Cache-busting: cambiar MODEL_VERSION cuando se actualicen los modelos
-const MODEL_VERSION = 'v2'
+// Cache-busting automático: usa el timestamp del build
+const BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIME || ''
 
 const MODEL_FILE_PATHS: Record<string, string> = {
     'nissan-skyline-r34': '/models/vehicles/nissan-skyline-r34/base.glb',
@@ -55,10 +55,10 @@ const MODEL_FILE_PATHS: Record<string, string> = {
     'dodge-challenger-hellcat': '/models/vehicles/dodge-challenger-hellcat/model.glb'
 }
 
-// Función helper para obtener la ruta del modelo con cache-busting
+// Función helper para obtener la ruta del modelo con cache-busting automático
 function getModelPath(vehicleId: string): string {
     const basePath = MODEL_FILE_PATHS[vehicleId] || `/models/vehicles/${vehicleId}/base.glb`
-    return `${basePath}?${MODEL_VERSION}`
+    return BUILD_TIMESTAMP ? `${basePath}?t=${BUILD_TIMESTAMP}` : basePath
 }
 
 // Precargar todos los modelos al cargar el módulo

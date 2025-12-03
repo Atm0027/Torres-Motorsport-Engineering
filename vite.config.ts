@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => ({
             jsxRuntime: 'automatic'
         })
     ],
+    define: {
+        // Timestamp del build para cache-busting automático de assets
+        'import.meta.env.VITE_BUILD_TIME': JSON.stringify(Date.now().toString(36))
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
