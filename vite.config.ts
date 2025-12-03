@@ -49,12 +49,13 @@ export default defineConfig(({ mode }) => ({
         rollupOptions: {
             output: {
                 manualChunks: (id) => {
-                    // Separar Three.js en chunks más pequeños
                     if (id.includes('node_modules')) {
-                        // React core
-                        if (id.includes('react-dom')) return 'vendor-react-dom'
+                        // React debe ir todo junto para evitar problemas de inicialización
+                        if (id.includes('react-dom') || id.includes('/react/') || id.includes('react/') || id.includes('scheduler')) {
+                            return 'vendor-react'
+                        }
+
                         if (id.includes('react-router')) return 'vendor-react-router'
-                        if (id.includes('/react/') || id.includes('react/')) return 'vendor-react'
 
                         // Three.js - dividir en chunks separados
                         if (id.includes('@react-three/drei')) return 'vendor-drei'
