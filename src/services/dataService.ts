@@ -363,16 +363,29 @@ export async function initializeDataService(): Promise<void> {
 
     console.log('🚀 Inicializando servicio de datos...')
 
+    // Timeout de 5 segundos para evitar que la app se quede cargando indefinidamente
+    const timeout = new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: Carga de datos excedió 5 segundos')), 5000)
+    })
+
     try {
-        await Promise.all([
-            loadVehicles(),
-            loadParts()
+        await Promise.race([
+            Promise.all([
+                loadVehicles(),
+                loadParts()
+            ]),
+            timeout
         ])
         initialized = true
         console.log('✅ Servicio de datos inicializado correctamente')
     } catch (error) {
-        console.error('❌ Error inicializando servicio de datos:', error)
-        // Aún así marcamos como inicializado para usar fallback
+        console.warn('⚠️ Error o timeout inicializando servicio de datos:', error)
+        // Usar datos locales como fallback
+        console.log('📦 Usando datos locales como fallback')
+        cache.vehicles = localVehicles
+        cache.vehiclesById.clear()
+        localVehicles.forEach(v => cache.vehiclesById.set(v.id, v))
+        indexLocalParts()
         initialized = true
     }
 }
