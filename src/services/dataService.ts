@@ -3,15 +3,61 @@
 // Servicio centralizado de datos con Supabase y fallback local
 // ============================================
 
-import { getVehicles, getParts, isSupabaseConfigured } from './supabase'
 import { vehiclesDatabase as localVehicles } from '@/data/vehicles'
 import { partsCatalog as localParts } from '@/data/parts'
 import type { Vehicle, Part, PartCategory, PerformanceMetrics, BaseVehicleSpecs, CompatibilityRules, PartStats } from '@/types'
-import type { Database } from './supabase.types'
+
+// Verificar si Supabase está configurado via variables de entorno
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_KEY)
 
 // Tipos de la base de datos
-type DbVehicle = Database['public']['Tables']['vehicles']['Row']
-type DbPart = Database['public']['Tables']['parts']['Row']
+interface DbVehicle {
+    id: string
+    name: string
+    manufacturer: string
+    year: number
+    body_style: string
+    base_price: number
+    engine_type: string
+    engine_displacement: number
+    engine_cylinders: number
+    engine_naturally_aspirated: boolean
+    engine_base_horsepower: number
+    engine_base_torque: number
+    engine_redline: number
+    drivetrain: string
+    engine_layout: string
+    transmission_type: string
+    transmission_gears: number
+    weight: number
+    wheelbase: number
+    track_width: number
+    engine_bay_size: number
+    bolt_pattern: string
+    fuel_capacity: number
+    drag_coefficient: number
+    image_url?: string
+    model_url?: string
+    default_primary_color?: string
+    default_secondary_color?: string
+    default_accent_color?: string
+}
+
+interface DbPart {
+    id: string
+    name: string
+    brand: string
+    category: string
+    price: number
+    weight: number
+    description?: string
+    image_url?: string
+    model_url?: string
+    compatibility: unknown
+    stats: unknown
+}
 
 // ============================================
 // CACHE PARA DATOS
@@ -178,8 +224,10 @@ export async function loadVehicles(): Promise<Vehicle[]> {
 
     try {
         console.log('🚗 Cargando vehículos desde Supabase...')
+        // Importar Supabase dinámicamente
+        const { getVehicles } = await import('./supabase')
         const dbVehicles = await getVehicles()
-        const vehicles = dbVehicles.map(transformDbVehicle)
+        const vehicles = dbVehicles.map(v => transformDbVehicle(v as unknown as DbVehicle))
 
         // Actualizar cache
         cache.vehicles = vehicles
@@ -222,8 +270,10 @@ export async function loadParts(): Promise<Part[]> {
 
     try {
         console.log('🔧 Cargando piezas desde Supabase...')
+        // Importar Supabase dinámicamente
+        const { getParts } = await import('./supabase')
         const dbParts = await getParts()
-        const parts = dbParts.map(transformDbPart)
+        const parts = dbParts.map(p => transformDbPart(p as unknown as DbPart))
 
         // Actualizar cache e índices
         cache.parts = parts
