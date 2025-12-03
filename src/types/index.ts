@@ -41,7 +41,7 @@ export type PartCategory =
 
 // Compatibility Types
 export type MountType = 'inline4' | 'inline6' | 'v6' | 'v8' | 'v10' | 'v12' | 'flat4' | 'flat6' | 'rotary' | 'electric'
-export type BoltPattern = '4x100' | '4x108' | '4x114.3' | '5x100' | '5x108' | '5x112' | '5x114.3' | '5x120' | '5x130'
+export type BoltPattern = '4x100' | '4x108' | '4x114.3' | '5x100' | '5x108' | '5x112' | '5x114.3' | '5x115' | '5x120' | '5x130'
 
 export interface CompatibilityRules {
     mountTypes: MountType[]
