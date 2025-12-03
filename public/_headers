@@ -1,49 +1,33 @@
-# Cloudflare Pages Headers - Optimización de caché
+# Cloudflare Pages Headers
 # https://developers.cloudflare.com/pages/configuration/headers/
 
-# Assets estáticos con hash - cache inmutable de 1 año
+# Assets JS/CSS con hash - cache inmutable 1 año
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
-  X-Content-Type-Options: nosniff
 
-# Modelos 3D GLB - cache agresivo (archivos grandes, raramente cambian)
+# Modelos 3D GLB
 /models/*
   Cache-Control: public, max-age=31536000, immutable
-  X-Content-Type-Options: nosniff
-  Content-Type: model/gltf-binary
 
-# Entornos HDR - cache largo
+# Entornos HDR
 /environments/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Blueprints SVG - cache largo
+# Blueprints SVG
 /blueprints/*
   Cache-Control: public, max-age=2592000
-  X-Content-Type-Options: nosniff
-
-# Archivos de fuentes
-/*.woff2
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.woff
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-# HTML principal - revalidar siempre
-/index.html
-  Cache-Control: public, max-age=0, must-revalidate
-
-# Favicon y manifests
-/favicon.ico
-  Cache-Control: public, max-age=86400
-
-/*.webmanifest
-  Cache-Control: public, max-age=86400
 
 # Security headers globales
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()

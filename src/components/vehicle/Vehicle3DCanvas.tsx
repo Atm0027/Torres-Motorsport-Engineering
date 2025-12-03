@@ -6,24 +6,17 @@ import type { Vehicle } from '@/types'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 // =============================================================================
-// CONFIGURACIÓN CDN - Cloudflare optimizado
-// =============================================================================
-// En producción, los assets se sirven desde el CDN de Cloudflare con cache
-const IS_PRODUCTION = import.meta.env.PROD
-const ASSETS_BASE_URL = IS_PRODUCTION ? '' : '' // Cloudflare sirve desde el mismo dominio
-
-// =============================================================================
 // MAPEO DE ENTORNOS A ARCHIVOS HDR LOCALES
 // =============================================================================
 const ENVIRONMENT_HDR_FILES: Record<string, string> = {
-    'studio': `${ASSETS_BASE_URL}/environments/studio.hdr`,
-    'garage': `${ASSETS_BASE_URL}/environments/garage.hdr`,
-    'outdoor': `${ASSETS_BASE_URL}/environments/outdoor.hdr`,
-    'showroom': `${ASSETS_BASE_URL}/environments/showroom.hdr`
+    'studio': '/environments/studio.hdr',
+    'garage': '/environments/garage.hdr',
+    'outdoor': '/environments/outdoor.hdr',
+    'showroom': '/environments/showroom.hdr'
 }
 
 // =============================================================================
-// PRECARGA DE MODELOS - LAZY LOADING OPTIMIZADO PARA CDN
+// PRECARGA DE MODELOS
 // =============================================================================
 const VEHICLE_IDS = [
     'nissan-skyline-r34',
@@ -34,34 +27,16 @@ const VEHICLE_IDS = [
     'subaru-impreza-sti'
 ]
 
-// NO precargar todos los modelos - usar lazy loading
-// Solo precargar el modelo actual cuando se necesite
-const preloadedModels = new Set<string>()
-
-// Función para precargar un modelo específico bajo demanda
-export const preloadVehicleModel = (vehicleId: string) => {
-    if (!preloadedModels.has(vehicleId) && VEHICLE_IDS.includes(vehicleId)) {
-        const modelPath = `${ASSETS_BASE_URL}/models/vehicles/${vehicleId}/base.glb`
-        useGLTF.preload(modelPath)
-        preloadedModels.add(vehicleId)
-    }
-}
-
-// Precargar solo el primer vehículo (más probable de usar)
-if (typeof window !== 'undefined') {
-    // Defer preload para no bloquear el render inicial
-    requestIdleCallback?.(() => {
-        preloadVehicleModel('nissan-skyline-r34')
-    }) || setTimeout(() => {
-        preloadVehicleModel('nissan-skyline-r34')
-    }, 2000)
-}
+// Precargar todos los modelos al cargar el módulo
+VEHICLE_IDS.forEach(id => {
+    useGLTF.preload(`/models/vehicles/${id}/base.glb`)
+})
 
 // =============================================================================
 // OPTIMIZACIÓN: Pre-cargar geometrías y materiales reutilizables
 // =============================================================================
 const sharedGeometries = {
-    floor: new THREE.CircleGeometry(6, 24), // Reducido a 24 segmentos
+    floor: new THREE.CircleGeometry(6, 24),
     placeholder: new THREE.BoxGeometry(4, 1.2, 2),
     loading: new THREE.BoxGeometry(3, 1, 1.5)
 }
@@ -665,17 +640,9 @@ function LoadedVehicleModel({
     finishes: VehicleZoneFinishes
 }) {
     const modelRef = useRef<THREE.Group>(null)
-    // Usar ASSETS_BASE_URL para compatibilidad con CDN
-    const modelPath = `${ASSETS_BASE_URL}/models/vehicles/${vehicleId}/base.glb`
+    const modelPath = `/models/vehicles/${vehicleId}/base.glb`
 
-    // Precargar este modelo si no está en cache
-    useEffect(() => {
-        preloadVehicleModel(vehicleId)
-    }, [vehicleId])
-
-    if (!import.meta.env.PROD) {
-        console.log(`[3D] Cargando modelo: ${modelPath}`)
-    }
+    console.log(`[3D] Cargando modelo: ${modelPath}`)
 
     // Load the GLB model
     const gltf = useGLTF(modelPath)

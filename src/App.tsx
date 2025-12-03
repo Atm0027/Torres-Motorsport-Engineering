@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { MainLayout } from '@components/layout/MainLayout'
 import { useUserStore } from '@stores/userStore'
 
-// Lazy load pages for better code splitting - optimizado para Cloudflare CDN
+// Lazy load pages for better code splitting
 const GaragePage = lazy(() => import('@features/garage/pages/GaragePage').then(m => ({ default: m.GaragePage })))
 const CatalogPage = lazy(() => import('@features/catalog/pages/CatalogPage').then(m => ({ default: m.CatalogPage })))
 const CommunityPage = lazy(() => import('@features/community/pages/CommunityPage').then(m => ({ default: m.CommunityPage })))
@@ -12,20 +12,12 @@ const HomePage = lazy(() => import('@features/home/pages/HomePage').then(m => ({
 const LoginPage = lazy(() => import('@features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
 
-// Preload critical pages using requestIdleCallback (optimizado para CDN)
+// Preload critical pages after initial render
 const preloadCriticalPages = () => {
-    const preload = () => {
-        // Preload garage (most used page) and home
+    setTimeout(() => {
         import('@features/garage/pages/GaragePage')
         import('@features/home/pages/HomePage')
-    }
-
-    // Usar requestIdleCallback si disponible para no bloquear
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(preload, { timeout: 3000 })
-    } else {
-        setTimeout(preload, 1500)
-    }
+    }, 1000)
 }
 
 // Loading fallback component - memoized
