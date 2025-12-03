@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Badge } from '@components/ui/Badge'
-import { vehiclesDatabase } from '@/data/vehicles'
+import { getVehiclesSync } from '@/services/dataService'
 import type { Vehicle } from '@/types'
 
 interface VehicleSelectorProps {
@@ -12,6 +12,8 @@ export const VehicleSelector = memo(function VehicleSelector({
     currentVehicle,
     onSelectVehicle
 }: VehicleSelectorProps) {
+    const vehiclesDatabase = getVehiclesSync()
+
     return (
         <div className="p-4 border-b border-torres-dark-500">
             <h3 className="font-display text-sm font-semibold text-torres-light-100 uppercase tracking-wider mb-3">

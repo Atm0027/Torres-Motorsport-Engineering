@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import {
     Search,
     Filter,
@@ -11,7 +11,7 @@ import { Button } from '@components/ui/Button'
 import { Badge } from '@components/ui/Badge'
 import { useUserStore } from '@stores/userStore'
 import { useNotify } from '@stores/uiStore'
-import { partsCatalog } from '@/data/parts'
+import { getPartsSync, initializeDataService } from '@/services/dataService'
 import { PART_CATEGORIES } from '@/constants'
 import { formatCurrency } from '@utils/formatters'
 import type { PartCategory, Part } from '@/types'
@@ -28,6 +28,15 @@ export function CatalogPage() {
     const [selectedCategory, setSelectedCategory] = useState<PartCategory | 'all'>('all')
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
     const [sortBy, setSortBy] = useState<'price' | 'name'>('price')
+    const [dataLoaded, setDataLoaded] = useState(false)
+
+    // Inicializar servicio de datos
+    useEffect(() => {
+        initializeDataService().then(() => setDataLoaded(true))
+    }, [])
+
+    // Obtener catálogo de partes
+    const partsCatalog = getPartsSync()
 
     // Filter and sort parts
     const filteredParts = useMemo(() => {

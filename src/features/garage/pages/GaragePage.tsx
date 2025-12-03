@@ -30,7 +30,7 @@ import { Button } from '@components/ui/Button'
 import { Badge } from '@components/ui/Badge'
 import { StatBar } from '@components/ui/ProgressBar'
 import { useNotify } from '@stores/uiStore'
-import { vehiclesDatabase } from '@/data/vehicles'
+import { getVehiclesSync, getVehicleByIdSync, initializeDataService } from '@/services/dataService'
 import { VIEW_MODES } from '@/constants'
 import { formatCurrency } from '@utils/formatters'
 import type { PartCategory, Vehicle, PerformanceMetrics, User } from '@/types'
@@ -152,6 +152,14 @@ export function GaragePage() {
     const [activeSection, setActiveSection] = useState<GarageSectionId>(initialSection)
     const [showOverlay, setShowOverlay] = useState(true)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [dataLoaded, setDataLoaded] = useState(false)
+
+    // Inicializar servicio de datos
+    useEffect(() => {
+        initializeDataService().then(() => {
+            setDataLoaded(true)
+        })
+    }, [])
 
     // Hook para filtrar partes
     const currentSectionData = GARAGE_SECTIONS[activeSection]
@@ -180,13 +188,13 @@ export function GaragePage() {
 
     // Set initial vehicle if none selected
     useEffect(() => {
-        if (!currentVehicle) {
-            const starterVehicle = vehiclesDatabase.find(v => v.id === 'nissan-skyline-r34')
+        if (!currentVehicle && dataLoaded) {
+            const starterVehicle = getVehicleByIdSync('nissan-skyline-r34')
             if (starterVehicle) {
                 setCurrentVehicle(starterVehicle)
             }
         }
-    }, [currentVehicle, setCurrentVehicle])
+    }, [currentVehicle, setCurrentVehicle, dataLoaded])
 
     // Handlers
     const handleSectionChange = useCallback((sectionId: GarageSectionId) => {
@@ -341,6 +349,8 @@ interface LeftPanelProps {
 }
 
 function LeftPanel({ currentVehicle, activeSection, onSectionChange, onSelectVehicle, onSaveBuild }: LeftPanelProps) {
+    const vehiclesDatabase = getVehiclesSync()
+
     return (
         <aside className="w-64 min-w-[256px] border-r border-torres-dark-500 bg-torres-dark-800/50 flex flex-col">
             {/* Vehicle Selector */}

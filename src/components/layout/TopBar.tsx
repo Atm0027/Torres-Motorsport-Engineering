@@ -4,8 +4,7 @@ import { Bell, Search, User, Wallet, X, LogOut, Settings } from 'lucide-react'
 import { useUserStore } from '@stores/userStore'
 import { useNotify } from '@stores/uiStore'
 import { formatCurrency } from '@utils/formatters'
-import { partsCatalog } from '@/data/parts'
-import { vehiclesDatabase } from '@/data/vehicles'
+import { getPartsSync, getVehiclesSync } from '@/services/dataService'
 
 export function TopBar() {
     const navigate = useNavigate()
@@ -58,6 +57,10 @@ export function TopBar() {
 
         const lowerQuery = query.toLowerCase()
         const results: Array<{ type: string, name: string, id: string }> = []
+
+        // Obtener datos del cache
+        const vehiclesDatabase = getVehiclesSync()
+        const partsCatalog = getPartsSync()
 
         // Buscar en vehículos
         vehiclesDatabase.forEach(v => {

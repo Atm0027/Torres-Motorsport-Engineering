@@ -1,80 +1,61 @@
 // ============================================
 // TORRES MOTORSPORT ENGINEERING - PARTS INDEX
 // Índices optimizados para búsqueda rápida de partes
+// Ahora usa el dataService que carga desde Supabase
 // ============================================
 
-import { partsCatalog } from './parts'
+import {
+    getPartByIdSync,
+    getPartsByCategorySync,
+    getPartsByCategoriesSync,
+    getAllBrandsSync,
+    getAvailableCategoriesSync,
+    getPartsSync
+} from '@/services/dataService'
+import { partsCatalog as localPartsCatalog } from './parts'
 import type { Part, PartCategory } from '@/types'
-
-// Crear índices una sola vez al cargar el módulo
-const partsById = new Map<string, Part>()
-const partsByCategory = new Map<PartCategory, Part[]>()
-const partsByBrand = new Map<string, Part[]>()
-
-// Inicializar índices
-for (const part of partsCatalog) {
-    // Índice por ID
-    partsById.set(part.id, part)
-
-    // Índice por categoría
-    const categoryParts = partsByCategory.get(part.category) || []
-    categoryParts.push(part)
-    partsByCategory.set(part.category, categoryParts)
-
-    // Índice por marca
-    const brandParts = partsByBrand.get(part.brand) || []
-    brandParts.push(part)
-    partsByBrand.set(part.brand, brandParts)
-}
 
 /**
  * Obtener una parte por su ID - O(1)
  */
 export function getPartById(id: string): Part | undefined {
-    return partsById.get(id)
+    return getPartByIdSync(id)
 }
 
 /**
  * Obtener todas las partes de una categoría - O(1)
  */
 export function getPartsByCategory(category: PartCategory): Part[] {
-    return partsByCategory.get(category) || []
+    return getPartsByCategorySync(category)
 }
 
 /**
  * Obtener partes de múltiples categorías - O(n) donde n es número de categorías
  */
 export function getPartsByCategories(categories: PartCategory[]): Part[] {
-    if (categories.length === 0) return []
-    if (categories.length === 1) return getPartsByCategory(categories[0])
-
-    const result: Part[] = []
-    for (const category of categories) {
-        const parts = partsByCategory.get(category)
-        if (parts) result.push(...parts)
-    }
-    return result
+    return getPartsByCategoriesSync(categories)
 }
 
 /**
  * Obtener todas las partes de una marca - O(1)
  */
 export function getPartsByBrand(brand: string): Part[] {
-    return partsByBrand.get(brand) || []
+    const parts = getPartsSync()
+    return parts.filter(p => p.brand === brand)
 }
 
 /**
  * Obtener todas las marcas únicas
  */
 export function getAllBrands(): string[] {
-    return Array.from(partsByBrand.keys()).sort()
+    return getAllBrandsSync()
 }
 
 /**
  * Obtener todas las categorías que tienen partes
  */
 export function getAvailableCategories(): PartCategory[] {
-    return Array.from(partsByCategory.keys())
+    return getAvailableCategoriesSync()
 }
 
 /**
@@ -82,7 +63,9 @@ export function getAvailableCategories(): PartCategory[] {
  */
 export function getPartCountByCategory(): Map<PartCategory, number> {
     const counts = new Map<PartCategory, number>()
-    for (const [category, parts] of partsByCategory) {
+    const categories = getAvailableCategoriesSync()
+    for (const category of categories) {
+        const parts = getPartsByCategorySync(category)
         counts.set(category, parts.length)
     }
     return counts
@@ -94,7 +77,8 @@ export function getPartCountByCategory(): Map<PartCategory, number> {
 export function searchPartsByName(query: string): Part[] {
     if (!query.trim()) return []
     const lowerQuery = query.toLowerCase()
-    return partsCatalog.filter(part =>
+    const parts = getPartsSync()
+    return parts.filter(part =>
         part.name.toLowerCase().includes(lowerQuery) ||
         part.brand.toLowerCase().includes(lowerQuery) ||
         part.description.toLowerCase().includes(lowerQuery)
@@ -114,7 +98,7 @@ export interface PartsFilterOptions {
 }
 
 export function getFilteredParts(options: PartsFilterOptions): Part[] {
-    let result = partsCatalog
+    let result = getPartsSync()
 
     // Filtrar por categorías
     if (options.categories && options.categories.length > 0) {
@@ -154,12 +138,27 @@ export function getFilteredParts(options: PartsFilterOptions): Part[] {
     return result
 }
 
-// Estadísticas del catálogo
+/**
+ * Estadísticas del catálogo (se calculan dinámicamente)
+ */
+export function getCatalogStats() {
+    const parts = getPartsSync()
+    const brands = new Set(parts.map(p => p.brand))
+    const categories = new Set(parts.map(p => p.category))
+
+    return {
+        totalParts: parts.length,
+        totalCategories: categories.size,
+        totalBrands: brands.size,
+    }
+}
+
+// Para compatibilidad, mantener catalogStats como getter
 export const catalogStats = {
-    totalParts: partsCatalog.length,
-    totalCategories: partsByCategory.size,
-    totalBrands: partsByBrand.size,
+    get totalParts() { return getPartsSync().length },
+    get totalCategories() { return getAvailableCategoriesSync().length },
+    get totalBrands() { return getAllBrandsSync().length },
 } as const
 
-// Re-exportar el catálogo original para casos donde se necesite
-export { partsCatalog }
+// Re-exportar el catálogo para compatibilidad (ahora desde dataService)
+export { localPartsCatalog as partsCatalog }

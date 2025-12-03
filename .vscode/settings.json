@@ -2,5 +2,13 @@
     "files.associations": {
         "_headers": "plaintext",
         "_redirects": "plaintext"
+    },
+    "mcp": {
+        "servers": {
+            "supabase": {
+                "type": "http",
+                "url": "https://mcp.supabase.com/mcp?project_ref=gldplzkjoadzgijzfoqx"
+            }
+        }
     }
 }

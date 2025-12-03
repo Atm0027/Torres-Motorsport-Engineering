@@ -1,7 +1,8 @@
-import { lazy, Suspense, memo, useEffect } from 'react'
+import { lazy, Suspense, memo, useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { MainLayout } from '@components/layout/MainLayout'
 import { useUserStore } from '@stores/userStore'
+import { initializeDataService } from '@/services/dataService'
 
 // Lazy load pages for better code splitting
 const GaragePage = lazy(() => import('@features/garage/pages/GaragePage').then(m => ({ default: m.GaragePage })))
@@ -75,10 +76,34 @@ function RoutePreloader() {
 }
 
 function App() {
+    const [dataReady, setDataReady] = useState(false)
+
+    // Inicializar servicio de datos desde Supabase
+    useEffect(() => {
+        initializeDataService().then(() => {
+            setDataReady(true)
+            console.log('✅ Servicio de datos inicializado')
+        })
+    }, [])
+
     // Preload critical pages after mount
     useEffect(() => {
-        preloadCriticalPages()
-    }, [])
+        if (dataReady) {
+            preloadCriticalPages()
+        }
+    }, [dataReady])
+
+    // Mostrar loader mientras cargan los datos
+    if (!dataReady) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-torres-dark-900">
+                <div className="text-center">
+                    <div className="animate-spin w-12 h-12 border-4 border-torres-primary border-t-transparent rounded-full mx-auto mb-4" />
+                    <p className="text-torres-light-300">Cargando datos...</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <Suspense fallback={<PageLoader />}>
