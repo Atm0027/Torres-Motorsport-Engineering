@@ -390,9 +390,25 @@ export async function getPublicBuilds(limit = 20) {
  * Da like a un build
  */
 export async function likeBuild(buildId: string) {
-    const { data, error } = await supabase.rpc('increment_build_likes', {
-        build_id: buildId
-    })
+    // Primero obtener el valor actual de likes
+    const { data: build, error: fetchError } = await supabase
+        .from('builds')
+        .select('likes')
+        .eq('id', buildId)
+        .single()
+
+    if (fetchError) {
+        console.error('Error fetching build likes:', fetchError)
+        throw fetchError
+    }
+
+    // Incrementar likes
+    const { data, error } = await supabase
+        .from('builds')
+        .update({ likes: (build?.likes || 0) + 1 })
+        .eq('id', buildId)
+        .select()
+        .single()
 
     if (error) {
         console.error('Error liking build:', error)

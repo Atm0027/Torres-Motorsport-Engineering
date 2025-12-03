@@ -28,11 +28,10 @@ export function CatalogPage() {
     const [selectedCategory, setSelectedCategory] = useState<PartCategory | 'all'>('all')
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
     const [sortBy, setSortBy] = useState<'price' | 'name'>('price')
-    const [dataLoaded, setDataLoaded] = useState(false)
 
     // Inicializar servicio de datos
     useEffect(() => {
-        initializeDataService().then(() => setDataLoaded(true))
+        initializeDataService()
     }, [])
 
     // Obtener catálogo de partes
