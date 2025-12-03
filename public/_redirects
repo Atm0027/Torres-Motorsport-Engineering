@@ -1,4 +1,2 @@
 # Cloudflare Pages - SPA fallback
-# Solo redirige rutas que no existen como archivos
-/*  /index.html  200
-
+# Las rutas que no existen como archivos redirigen a index.html

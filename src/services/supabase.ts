@@ -2,23 +2,41 @@
 // TORRES MOTORSPORT ENGINEERING - SUPABASE CLIENT
 // ============================================
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from './supabase.types'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables. Check .env.local file.')
+// Flag para saber si Supabase está disponible
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
+
+// Crear cliente solo si hay configuración
+let supabaseInstance: SupabaseClient<Database> | null = null
+
+if (isSupabaseConfigured) {
+    supabaseInstance = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true,
+        },
+    })
+    console.log('✅ Supabase configurado correctamente')
+} else {
+    console.warn('⚠️ Variables de Supabase no configuradas. Usando datos locales.')
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-    },
-})
+// Helper para obtener el cliente (lanza error si no está disponible)
+function getSupabase(): SupabaseClient<Database> {
+    if (!supabaseInstance) {
+        throw new Error('Supabase not configured')
+    }
+    return supabaseInstance
+}
+
+// Exportar el cliente (puede ser null)
+export const supabase = supabaseInstance
 
 // ============================================
 // HELPER FUNCTIONS
@@ -28,7 +46,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
  * Obtiene todos los vehículos de la base de datos
  */
 export async function getVehicles() {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('vehicles')
         .select('*')
         .order('name')
@@ -45,7 +64,8 @@ export async function getVehicles() {
  * Obtiene un vehículo por su ID
  */
 export async function getVehicleById(id: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('vehicles')
         .select('*')
         .eq('id', id)
@@ -63,7 +83,8 @@ export async function getVehicleById(id: string) {
  * Obtiene todas las piezas de la base de datos
  */
 export async function getParts() {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('parts')
         .select('*')
         .order('category, name')
@@ -80,7 +101,8 @@ export async function getParts() {
  * Obtiene piezas por categoría
  */
 export async function getPartsByCategory(category: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('parts')
         .select('*')
         .eq('category', category)
@@ -98,7 +120,8 @@ export async function getPartsByCategory(category: string) {
  * Obtiene una pieza por su ID
  */
 export async function getPartById(id: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('parts')
         .select('*')
         .eq('id', id)
@@ -116,7 +139,8 @@ export async function getPartById(id: string) {
  * Obtiene todos los logros
  */
 export async function getAchievements() {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('achievements')
         .select('*')
         .order('category, name')
@@ -137,7 +161,8 @@ export async function getAchievements() {
  * Registra un nuevo usuario
  */
 export async function signUp(email: string, password: string, username: string) {
-    const { data, error } = await supabase.auth.signUp({
+    const client = getSupabase()
+    const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
@@ -159,7 +184,8 @@ export async function signUp(email: string, password: string, username: string) 
  * Inicia sesión con email y contraseña
  */
 export async function signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const client = getSupabase()
+    const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
     })
@@ -176,7 +202,8 @@ export async function signIn(email: string, password: string) {
  * Cierra sesión
  */
 export async function signOut() {
-    const { error } = await supabase.auth.signOut()
+    const client = getSupabase()
+    const { error } = await client.auth.signOut()
 
     if (error) {
         console.error('Error signing out:', error)
@@ -188,7 +215,8 @@ export async function signOut() {
  * Obtiene el usuario actual
  */
 export async function getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const client = getSupabase()
+    const { data: { user }, error } = await client.auth.getUser()
 
     if (error) {
         console.error('Error getting current user:', error)
@@ -202,7 +230,8 @@ export async function getCurrentUser() {
  * Escucha cambios en el estado de autenticación
  */
 export function onAuthStateChange(callback: (event: string, session: unknown) => void) {
-    return supabase.auth.onAuthStateChange(callback)
+    const client = getSupabase()
+    return client.auth.onAuthStateChange(callback)
 }
 
 // ============================================
@@ -213,7 +242,8 @@ export function onAuthStateChange(callback: (event: string, session: unknown) =>
  * Obtiene los datos del usuario autenticado
  */
 export async function getUserProfile(userId: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('users')
         .select('*')
         .eq('id', userId)
@@ -237,7 +267,8 @@ export async function updateUserProfile(userId: string, updates: {
     experience?: number
     level?: number
 }) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('users')
         .update(updates)
         .eq('id', userId)
@@ -256,7 +287,8 @@ export async function updateUserProfile(userId: string, updates: {
  * Obtiene los vehículos del usuario
  */
 export async function getUserVehicles(userId: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('user_vehicles')
         .select(`
             *,
@@ -276,7 +308,8 @@ export async function getUserVehicles(userId: string) {
  * Obtiene las piezas del usuario
  */
 export async function getUserParts(userId: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('user_parts')
         .select(`
             *,
@@ -296,7 +329,8 @@ export async function getUserParts(userId: string) {
  * Obtiene los logros del usuario
  */
 export async function getUserAchievements(userId: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('user_achievements')
         .select(`
             *,
@@ -328,7 +362,8 @@ export async function saveBuild(build: {
     color: string
     is_public?: boolean
 }) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('builds')
         .insert(build)
         .select()
@@ -346,7 +381,8 @@ export async function saveBuild(build: {
  * Obtiene los builds del usuario
  */
 export async function getUserBuilds(userId: string) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('builds')
         .select(`
             *,
@@ -367,7 +403,8 @@ export async function getUserBuilds(userId: string) {
  * Obtiene builds públicos
  */
 export async function getPublicBuilds(limit = 20) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('builds')
         .select(`
             *,
@@ -390,8 +427,10 @@ export async function getPublicBuilds(limit = 20) {
  * Da like a un build
  */
 export async function likeBuild(buildId: string) {
+    const client = getSupabase()
+
     // Primero obtener el valor actual de likes
-    const { data: build, error: fetchError } = await supabase
+    const { data: build, error: fetchError } = await client
         .from('builds')
         .select('likes')
         .eq('id', buildId)
@@ -403,7 +442,7 @@ export async function likeBuild(buildId: string) {
     }
 
     // Incrementar likes
-    const { data, error } = await supabase
+    const { data, error } = await client
         .from('builds')
         .update({ likes: (build?.likes || 0) + 1 })
         .eq('id', buildId)
@@ -426,7 +465,8 @@ export async function likeBuild(buildId: string) {
  * Obtiene el leaderboard por categoría
  */
 export async function getLeaderboard(category: string, limit = 50) {
-    const { data, error } = await supabase
+    const client = getSupabase()
+    const { data, error } = await client
         .from('leaderboard_entries')
         .select(`
             *,

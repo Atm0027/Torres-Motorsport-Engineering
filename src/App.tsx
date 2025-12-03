@@ -77,13 +77,21 @@ function RoutePreloader() {
 
 function App() {
     const [dataReady, setDataReady] = useState(false)
+    const [loadError, setLoadError] = useState<string | null>(null)
 
     // Inicializar servicio de datos desde Supabase
     useEffect(() => {
-        initializeDataService().then(() => {
-            setDataReady(true)
-            console.log('✅ Servicio de datos inicializado')
-        })
+        initializeDataService()
+            .then(() => {
+                setDataReady(true)
+                console.log('✅ Servicio de datos inicializado')
+            })
+            .catch((error) => {
+                console.error('❌ Error inicializando datos:', error)
+                setLoadError(error.message)
+                // Aún así marcamos como listo para usar datos locales
+                setDataReady(true)
+            })
     }, [])
 
     // Preload critical pages after mount
@@ -103,6 +111,11 @@ function App() {
                 </div>
             </div>
         )
+    }
+
+    // Mostrar warning si hubo error pero continuar
+    if (loadError) {
+        console.warn('⚠️ La app continuará con datos locales debido a:', loadError)
     }
 
     return (

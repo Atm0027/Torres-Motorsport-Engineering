@@ -3,7 +3,7 @@
 // Servicio centralizado de datos con Supabase y fallback local
 // ============================================
 
-import { getVehicles, getParts } from './supabase'
+import { getVehicles, getParts, isSupabaseConfigured } from './supabase'
 import { vehiclesDatabase as localVehicles } from '@/data/vehicles'
 import { partsCatalog as localParts } from '@/data/parts'
 import type { Vehicle, Part, PartCategory, PerformanceMetrics, BaseVehicleSpecs, CompatibilityRules, PartStats } from '@/types'
@@ -166,6 +166,16 @@ export async function loadVehicles(): Promise<Vehicle[]> {
         return cache.vehicles
     }
 
+    // Si Supabase no está configurado, usar datos locales directamente
+    if (!isSupabaseConfigured) {
+        console.log('📦 Usando vehículos locales (Supabase no configurado)')
+        cache.vehicles = localVehicles
+        cache.vehiclesById.clear()
+        localVehicles.forEach(v => cache.vehiclesById.set(v.id, v))
+        cache.lastFetch.vehicles = now
+        return localVehicles
+    }
+
     try {
         console.log('🚗 Cargando vehículos desde Supabase...')
         const dbVehicles = await getVehicles()
@@ -174,7 +184,9 @@ export async function loadVehicles(): Promise<Vehicle[]> {
         // Actualizar cache
         cache.vehicles = vehicles
         cache.vehiclesById.clear()
-        vehicles.forEach(v => cache.vehiclesById.set(v.id, v))
+        for (const vehicle of vehicles) {
+            cache.vehiclesById.set(vehicle.id, vehicle)
+        }
         cache.lastFetch.vehicles = now
 
         console.log(`✅ ${vehicles.length} vehículos cargados desde la base de datos`)
@@ -198,6 +210,14 @@ export async function loadParts(): Promise<Part[]> {
     // Retornar cache si es válido
     if (cache.parts && (now - cache.lastFetch.parts) < CACHE_EXPIRY) {
         return cache.parts
+    }
+
+    // Si Supabase no está configurado, usar datos locales directamente
+    if (!isSupabaseConfigured) {
+        console.log('📦 Usando piezas locales (Supabase no configurado)')
+        indexLocalParts()
+        cache.lastFetch.parts = now
+        return localParts
     }
 
     try {
@@ -225,19 +245,25 @@ export async function loadParts(): Promise<Part[]> {
     } catch (error) {
         console.warn('⚠️ Error cargando piezas desde Supabase, usando datos locales:', error)
         // Fallback a datos locales - indexar
-        cache.parts = localParts
-        cache.partsById.clear()
-        cache.partsByCategory.clear()
-
-        for (const part of localParts) {
-            cache.partsById.set(part.id, part)
-
-            const categoryParts = cache.partsByCategory.get(part.category) || []
-            categoryParts.push(part)
-            cache.partsByCategory.set(part.category, categoryParts)
-        }
-
+        indexLocalParts()
         return localParts
+    }
+}
+
+/**
+ * Indexa las piezas locales en el cache
+ */
+function indexLocalParts(): void {
+    cache.parts = localParts
+    cache.partsById.clear()
+    cache.partsByCategory.clear()
+
+    for (const part of localParts) {
+        cache.partsById.set(part.id, part)
+
+        const categoryParts = cache.partsByCategory.get(part.category) || []
+        categoryParts.push(part)
+        cache.partsByCategory.set(part.category, categoryParts)
     }
 }
 
