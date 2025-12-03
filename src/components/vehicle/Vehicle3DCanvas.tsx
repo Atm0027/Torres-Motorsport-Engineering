@@ -912,6 +912,72 @@ function LoadedVehicleModel({
                 calipers: [],  // Sin pinzas editables
                 interior: ['interior_main'],
                 exclude: ['glass', 'light', 'tire', 'rubber', 'plastic', 'body_secondary', 'exhaust', 'brake_disc', 'chrome_trim', 'chrome', 'interior_trim', 'misc_parts']
+            },
+            // =====================================================================
+            // BMW M3 E46
+            // Materiales: Body_Paint.006, Wheel_Metal, Brake_Caliper, Interior
+            // =====================================================================
+            'bmw-m3-e46': {
+                body: ['body_paint'],  // Body_Paint.006 -> busca por prefijo
+                wheels: ['wheel_metal'],  // Wheel_Metal
+                calipers: ['brake_caliper'],  // Brake_Caliper
+                interior: ['interior'],  // Interior
+                exclude: ['glass', 'light', 'rubber', 'plastic', 'chrome', 'headlight', 'taillight', 'blinker', 'mirror', 'logo', 'nothing']
+            },
+            // =====================================================================
+            // PORSCHE 911 GT3 997
+            // Materiales: Body_Paint.001, Wheel_Metal.001, Brake_Caliper.002/.003
+            // =====================================================================
+            'porsche-911-gt3-997': {
+                body: ['body_paint'],  // Body_Paint.001
+                wheels: ['wheel_metal'],  // Wheel_Metal.001
+                calipers: ['brake_caliper'],  // Brake_Caliper.002/003
+                interior: ['int_alcantara', 'int_skin', 'int_carpet'],  // Interior materials
+                exclude: ['glass', 'light', 'tyre', 'chrome', 'carbon', 'ext_', 'mirror', 'logo', 'damage', 'disc', 'mechanics']
+            },
+            // =====================================================================
+            // MERCEDES AMG GT R
+            // Materiales: Body_Paint.002, Wheel1/Wheel2, no tiene pinzas editables
+            // =====================================================================
+            'mercedes-amg-gtr': {
+                body: ['body_paint'],  // Body_Paint.002
+                wheels: ['wheel1', 'wheel2'],  // Wheel1.001, Wheel2.001
+                calipers: [],  // Sin pinzas editables
+                interior: ['interior_setgtr'],  // Car_MercedesBenz_AMGGT_2015_Interior_SetGTR_D
+                exclude: ['glass', 'light', 'chrome', 'badge', 'engine', 'tyre', 'chassis', 'plastic', 'grille', 'black_parts', 'red_glass', 'gloss_black', 'darkest_black']
+            },
+            // =====================================================================
+            // FORD MUSTANG GT500
+            // Materiales: Body_Paint.003, fFord...Wheel1A, cCalliper...
+            // =====================================================================
+            'ford-mustang-gt500': {
+                body: ['body_paint'],  // Body_Paint.003
+                wheels: ['wheel1a'],  // fFord_MustangShelbyGT500RewardRecycled_2019_Wheel1A
+                calipers: ['calliperbody', 'callipergloss'],  // Caliper materials
+                interior: ['interiora'],  // fFord...InteriorA_Material1
+                exclude: ['glass', 'light', 'carbon', 'engine', 'grille', 'badge', 'window', 'manufacturerp', 'orange_glass', 'red_glass', 'base_material']
+            },
+            // =====================================================================
+            // CHEVROLET CAMARO ZL1
+            // Materiales: Body_Paint.004, CMM_Rim_HighSG1, CMM_Caliper_HighSG1
+            // =====================================================================
+            'chevrolet-camaro-zl1': {
+                body: ['body_paint'],  // Body_Paint.004
+                wheels: ['cmm_rim'],  // CMM_Rim_HighSG1
+                calipers: ['cmm_caliper'],  // CMM_Caliper_HighSG1
+                interior: [],  // Sin interior editable
+                exclude: ['glass', 'light', 'tire', 'chassis', 'engine', 'grille', 'badge', 'brakedisc', 'plastic', 'polysurface']
+            },
+            // =====================================================================
+            // DODGE CHALLENGER HELLCAT
+            // Materiales: Body_Paint.005, sin llantas/pinzas editables (materiales genéricos)
+            // =====================================================================
+            'dodge-challenger-hellcat': {
+                body: ['body_paint'],  // Body_Paint.005
+                wheels: [],  // Llantas tienen materiales genéricos (MeshpartXMtl)
+                calipers: [],  // Sin pinzas editables
+                interior: ['steeringwheel'],  // SteeringWheel1Mtl, SteeringWheel2Mtl
+                exclude: ['glass', 'light', 'chrome', 'l2mtl', 'r1mtl', 'meshpart']  // Excluir materiales genéricos
             }
         }
 
