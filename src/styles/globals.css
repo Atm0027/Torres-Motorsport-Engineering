@@ -187,6 +187,11 @@
         @apply bg-torres-dark-700/50 backdrop-blur-md;
     }
 
+    /* Aspect ratio utility (compatibilidad cuando corePlugin 'aspectRatio' está deshabilitado) */
+    .aspect-square {
+        aspect-ratio: 1 / 1;
+    }
+
     /* Glow Effects */
     .glow-cyan {
         box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
