@@ -937,14 +937,14 @@ function LoadedVehicleModel({
             },
             // =====================================================================
             // MERCEDES AMG GT R
-            // Materiales: Body_Paint.002, Wheel1/Wheel2, no tiene pinzas editables
+            // Materiales: Body_Paint.004, Black_Metal (ruedas), Brake_Metal (pinzas)
             // =====================================================================
             'mercedes-amg-gtr': {
-                body: ['body_paint'],  // Body_Paint.002
-                wheels: ['wheel1', 'wheel2'],  // Wheel1.001, Wheel2.001
-                calipers: [],  // Sin pinzas editables
-                interior: ['interior_setgtr'],  // Car_MercedesBenz_AMGGT_2015_Interior_SetGTR_D
-                exclude: ['glass', 'light', 'chrome', 'badge', 'engine', 'tyre', 'chassis', 'plastic', 'grille', 'black_parts', 'red_glass', 'gloss_black', 'darkest_black']
+                body: ['body_paint'],  // Body_Paint.004
+                wheels: ['black_metal'],  // Black_Metal (llantas negras)
+                calipers: ['brake_metal'],  // Brake_Metal (pinzas)
+                interior: ['light_grey_leather', 'dark_grey_leather'],  // Cuero interior
+                exclude: ['glass', 'mirror', 'rubber', 'brake_disc', 'metal', 'red_emission', 'white_emission', 'red_metal', 'black']
             },
             // =====================================================================
             // FORD MUSTANG GT500
