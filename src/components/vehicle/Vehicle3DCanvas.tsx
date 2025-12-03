@@ -242,13 +242,13 @@ const MODEL_INITIAL_ROTATION: Record<string, number> = {
     'honda-nsx': 180,           // Modelo viene orientado hacia -Z
     'mitsubishi-evo-ix': 180,   // Modelo viene orientado hacia -Z
     'subaru-impreza-sti': 0,    // Sin rotación - usamos offset de cámara
-    // Nuevos modelos (orientación por defecto, ajustar si es necesario)
-    'bmw-m3-e46': 0,            // Modelo creado con orientación correcta
-    'porsche-911-gt3-997': 0,   // Modelo creado con orientación correcta
-    'mercedes-amg-gtr': 0,      // Modelo creado con orientación correcta
-    'ford-mustang-gt500': 0,    // Modelo creado con orientación correcta
-    'chevrolet-camaro-zl1': 0,  // Modelo creado con orientación correcta
-    'dodge-challenger-hellcat': 0 // Modelo creado con orientación correcta
+    // Modelos nuevos - frente hacia +X, rotar 90° para que apunte a +Z
+    'bmw-m3-e46': 90,
+    'porsche-911-gt3-997': 90,
+    'mercedes-amg-gtr': 90,
+    'ford-mustang-gt500': 90,
+    'chevrolet-camaro-zl1': 90,
+    'dodge-challenger-hellcat': 90
 }
 
 // Offset de ángulo azimutal por vehículo para ajustar las vistas de cámara
