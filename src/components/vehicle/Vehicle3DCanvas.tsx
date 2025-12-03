@@ -36,6 +36,9 @@ const VEHICLE_IDS = [
 ]
 
 // Mapeo de rutas de modelos (algunos usan base.glb, otros model.glb)
+// Cache-busting: cambiar MODEL_VERSION cuando se actualicen los modelos
+const MODEL_VERSION = 'v2'
+
 const MODEL_FILE_PATHS: Record<string, string> = {
     'nissan-skyline-r34': '/models/vehicles/nissan-skyline-r34/base.glb',
     'toyota-supra-a80': '/models/vehicles/toyota-supra-a80/base.glb',
@@ -52,9 +55,10 @@ const MODEL_FILE_PATHS: Record<string, string> = {
     'dodge-challenger-hellcat': '/models/vehicles/dodge-challenger-hellcat/model.glb'
 }
 
-// Función helper para obtener la ruta del modelo
+// Función helper para obtener la ruta del modelo con cache-busting
 function getModelPath(vehicleId: string): string {
-    return MODEL_FILE_PATHS[vehicleId] || `/models/vehicles/${vehicleId}/base.glb`
+    const basePath = MODEL_FILE_PATHS[vehicleId] || `/models/vehicles/${vehicleId}/base.glb`
+    return `${basePath}?${MODEL_VERSION}`
 }
 
 // Precargar todos los modelos al cargar el módulo
