@@ -941,13 +941,13 @@ function LoadedVehicleModel({
             },
             // =====================================================================
             // MERCEDES AMG GT R
-            // Materiales: Body_Paint.004, Black_Metal (ruedas), Brake_Metal (pinzas)
+            // Materiales: Body_Paint.035, Black_Metal.005 (llantas), Brake_Metal.005 (pinzas)
             // =====================================================================
             'mercedes-amg-gtr': {
-                body: ['body_paint'],  // Body_Paint.004
-                wheels: ['black_metal'],  // Black_Metal (llantas negras)
-                calipers: ['brake_metal'],  // Brake_Metal (pinzas)
-                interior: ['light_grey_leather', 'dark_grey_leather'],  // Cuero interior
+                body: ['body_paint'],  // Body_Paint.035 - carrocería
+                wheels: ['black_metal'],  // Black_Metal.005 - llantas
+                calipers: ['brake_metal'],  // Brake_Metal.005 - pinzas de freno
+                interior: ['leather', 'grey_leather'],  // Light/Dark_Grey_Leather
                 exclude: ['glass', 'mirror', 'rubber', 'brake_disc', 'metal', 'red_emission', 'white_emission', 'red_metal', 'black']
             },
             // =====================================================================
