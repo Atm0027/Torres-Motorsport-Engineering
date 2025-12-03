@@ -24,12 +24,42 @@ const VEHICLE_IDS = [
     'mazda-rx7-fd',
     'honda-nsx',
     'mitsubishi-evo-ix',
-    'subaru-impreza-sti'
+    'subaru-impreza-sti',
+    // European Performance
+    'bmw-m3-e46',
+    'porsche-911-gt3-997',
+    'mercedes-amg-gtr',
+    // American Muscle
+    'ford-mustang-gt500',
+    'chevrolet-camaro-zl1',
+    'dodge-challenger-hellcat'
 ]
+
+// Mapeo de rutas de modelos (algunos usan base.glb, otros model.glb)
+const MODEL_FILE_PATHS: Record<string, string> = {
+    'nissan-skyline-r34': '/models/vehicles/nissan-skyline-r34/base.glb',
+    'toyota-supra-a80': '/models/vehicles/toyota-supra-a80/base.glb',
+    'mazda-rx7-fd': '/models/vehicles/mazda-rx7-fd/base.glb',
+    'honda-nsx': '/models/vehicles/honda-nsx/base.glb',
+    'mitsubishi-evo-ix': '/models/vehicles/mitsubishi-evo-ix/base.glb',
+    'subaru-impreza-sti': '/models/vehicles/subaru-impreza-sti/base.glb',
+    // Nuevos modelos usan model.glb
+    'bmw-m3-e46': '/models/vehicles/bmw-m3-e46/model.glb',
+    'porsche-911-gt3-997': '/models/vehicles/porsche-911-gt3-997/model.glb',
+    'mercedes-amg-gtr': '/models/vehicles/mercedes-amg-gtr/model.glb',
+    'ford-mustang-gt500': '/models/vehicles/ford-mustang-gt500/model.glb',
+    'chevrolet-camaro-zl1': '/models/vehicles/chevrolet-camaro-zl1/model.glb',
+    'dodge-challenger-hellcat': '/models/vehicles/dodge-challenger-hellcat/model.glb'
+}
+
+// Función helper para obtener la ruta del modelo
+function getModelPath(vehicleId: string): string {
+    return MODEL_FILE_PATHS[vehicleId] || `/models/vehicles/${vehicleId}/base.glb`
+}
 
 // Precargar todos los modelos al cargar el módulo
 VEHICLE_IDS.forEach(id => {
-    useGLTF.preload(`/models/vehicles/${id}/base.glb`)
+    useGLTF.preload(getModelPath(id))
 })
 
 // =============================================================================
@@ -211,7 +241,14 @@ const MODEL_INITIAL_ROTATION: Record<string, number> = {
     'toyota-supra-a80': 90,     // Modelo viene orientado hacia -X
     'honda-nsx': 180,           // Modelo viene orientado hacia -Z
     'mitsubishi-evo-ix': 180,   // Modelo viene orientado hacia -Z
-    'subaru-impreza-sti': 0     // Sin rotación - usamos offset de cámara
+    'subaru-impreza-sti': 0,    // Sin rotación - usamos offset de cámara
+    // Nuevos modelos (orientación por defecto, ajustar si es necesario)
+    'bmw-m3-e46': 0,            // Modelo creado con orientación correcta
+    'porsche-911-gt3-997': 0,   // Modelo creado con orientación correcta
+    'mercedes-amg-gtr': 0,      // Modelo creado con orientación correcta
+    'ford-mustang-gt500': 0,    // Modelo creado con orientación correcta
+    'chevrolet-camaro-zl1': 0,  // Modelo creado con orientación correcta
+    'dodge-challenger-hellcat': 0 // Modelo creado con orientación correcta
 }
 
 // Offset de ángulo azimutal por vehículo para ajustar las vistas de cámara
@@ -640,7 +677,7 @@ function LoadedVehicleModel({
     finishes: VehicleZoneFinishes
 }) {
     const modelRef = useRef<THREE.Group>(null)
-    const modelPath = `/models/vehicles/${vehicleId}/base.glb`
+    const modelPath = getModelPath(vehicleId)
 
     console.log(`[3D] Cargando modelo: ${modelPath}`)
 

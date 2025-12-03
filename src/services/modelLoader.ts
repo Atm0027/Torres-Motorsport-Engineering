@@ -383,6 +383,369 @@ const vehicleModelConfigs: Record<string, VehicleModelConfig> = {
             wheels: '#fbbf24',
             calipers: '#dc2626'
         }
+    },
+    // === EUROPEAN PERFORMANCE ===
+    'bmw-m3-e46': {
+        id: 'bmw-m3-e46',
+        name: 'M3 CSL',
+        manufacturer: 'BMW',
+        year: 2003,
+        dimensions: {
+            length: 4492,
+            width: 1780,
+            height: 1365,
+            wheelbase: 2731
+        },
+        modelUrl: '/models/vehicles/bmw-m3-e46/model.glb',
+        blueprints: {
+            side: '/blueprints/bmw-m3-e46/side.svg',
+            front: '/blueprints/bmw-m3-e46/front.svg',
+            rear: '/blueprints/bmw-m3-e46/rear.svg',
+            top: '/blueprints/bmw-m3-e46/top.svg'
+        },
+        slots: {
+            'body_front_bumper': {
+                position: [0, 0.15, 2.25],
+                rotation: [0, 0, 0],
+                compatible: ['bodykit-varis-bumper', 'bodykit-liberty-walk']
+            },
+            'aero_wing': {
+                position: [0, 1.35, -2.0],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.78, 0.33, 1.37],
+                rotation: [0, 0, 0],
+                boltPattern: '5x120',
+                stockSize: 19
+            },
+            'wheel_fr': {
+                position: [0.78, 0.33, 1.37],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x120',
+                stockSize: 19
+            },
+            'wheel_rl': {
+                position: [-0.78, 0.33, -1.37],
+                rotation: [0, 0, 0],
+                boltPattern: '5x120',
+                stockSize: 19
+            },
+            'wheel_rr': {
+                position: [0.78, 0.33, -1.37],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x120',
+                stockSize: 19
+            }
+        },
+        defaultColors: {
+            body: '#ffffff',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#dc2626'
+        }
+    },
+    'porsche-911-gt3-997': {
+        id: 'porsche-911-gt3-997',
+        name: '911 GT3 RS',
+        manufacturer: 'Porsche',
+        year: 2010,
+        dimensions: {
+            length: 4460,
+            width: 1852,
+            height: 1280,
+            wheelbase: 2355
+        },
+        modelUrl: '/models/vehicles/porsche-911-gt3-997/model.glb',
+        blueprints: {
+            side: '/blueprints/porsche-911-gt3-997/side.svg',
+            front: '/blueprints/porsche-911-gt3-997/front.svg',
+            rear: '/blueprints/porsche-911-gt3-997/rear.svg',
+            top: '/blueprints/porsche-911-gt3-997/top.svg'
+        },
+        slots: {
+            'aero_wing': {
+                position: [0, 1.28, -1.8],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.80, 0.31, 1.18],
+                rotation: [0, 0, 0],
+                boltPattern: '5x130',
+                stockSize: 19
+            },
+            'wheel_fr': {
+                position: [0.80, 0.31, 1.18],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x130',
+                stockSize: 19
+            },
+            'wheel_rl': {
+                position: [-0.82, 0.32, -1.18],
+                rotation: [0, 0, 0],
+                boltPattern: '5x130',
+                stockSize: 19
+            },
+            'wheel_rr': {
+                position: [0.82, 0.32, -1.18],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x130',
+                stockSize: 19
+            }
+        },
+        defaultColors: {
+            body: '#22c55e',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#fbbf24'
+        }
+    },
+    'mercedes-amg-gtr': {
+        id: 'mercedes-amg-gtr',
+        name: 'AMG GT R',
+        manufacturer: 'Mercedes-Benz',
+        year: 2017,
+        dimensions: {
+            length: 4551,
+            width: 1999,
+            height: 1284,
+            wheelbase: 2630
+        },
+        modelUrl: '/models/vehicles/mercedes-amg-gtr/model.glb',
+        blueprints: {
+            side: '/blueprints/mercedes-amg-gtr/side.svg',
+            front: '/blueprints/mercedes-amg-gtr/front.svg',
+            rear: '/blueprints/mercedes-amg-gtr/rear.svg',
+            top: '/blueprints/mercedes-amg-gtr/top.svg'
+        },
+        slots: {
+            'aero_wing': {
+                position: [0, 1.28, -2.1],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'aero_diffuser': {
+                position: [0, 0.1, -2.3],
+                rotation: [0, Math.PI, 0],
+                compatible: ['aero-diffuser-carbon']
+            },
+            'wheel_fl': {
+                position: [-0.86, 0.33, 1.32],
+                rotation: [0, 0, 0],
+                boltPattern: '5x112',
+                stockSize: 19
+            },
+            'wheel_fr': {
+                position: [0.86, 0.33, 1.32],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x112',
+                stockSize: 19
+            },
+            'wheel_rl': {
+                position: [-0.88, 0.34, -1.30],
+                rotation: [0, 0, 0],
+                boltPattern: '5x112',
+                stockSize: 20
+            },
+            'wheel_rr': {
+                position: [0.88, 0.34, -1.30],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x112',
+                stockSize: 20
+            }
+        },
+        defaultColors: {
+            body: '#16a34a',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#fbbf24'
+        }
+    },
+    // === AMERICAN MUSCLE ===
+    'ford-mustang-gt500': {
+        id: 'ford-mustang-gt500',
+        name: 'Shelby GT500',
+        manufacturer: 'Ford',
+        year: 2020,
+        dimensions: {
+            length: 4808,
+            width: 1916,
+            height: 1381,
+            wheelbase: 2720
+        },
+        modelUrl: '/models/vehicles/ford-mustang-gt500/model.glb',
+        blueprints: {
+            side: '/blueprints/ford-mustang-gt500/side.svg',
+            front: '/blueprints/ford-mustang-gt500/front.svg',
+            rear: '/blueprints/ford-mustang-gt500/rear.svg',
+            top: '/blueprints/ford-mustang-gt500/top.svg'
+        },
+        slots: {
+            'body_front_bumper': {
+                position: [0, 0.15, 2.4],
+                rotation: [0, 0, 0],
+                compatible: ['bodykit-liberty-walk']
+            },
+            'aero_wing': {
+                position: [0, 1.38, -2.2],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.83, 0.34, 1.36],
+                rotation: [0, 0, 0],
+                boltPattern: '5x114.3',
+                stockSize: 20
+            },
+            'wheel_fr': {
+                position: [0.83, 0.34, 1.36],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x114.3',
+                stockSize: 20
+            },
+            'wheel_rl': {
+                position: [-0.85, 0.35, -1.36],
+                rotation: [0, 0, 0],
+                boltPattern: '5x114.3',
+                stockSize: 20
+            },
+            'wheel_rr': {
+                position: [0.85, 0.35, -1.36],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x114.3',
+                stockSize: 20
+            }
+        },
+        defaultColors: {
+            body: '#3b82f6',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#dc2626'
+        }
+    },
+    'chevrolet-camaro-zl1': {
+        id: 'chevrolet-camaro-zl1',
+        name: 'Camaro ZL1 1LE',
+        manufacturer: 'Chevrolet',
+        year: 2019,
+        dimensions: {
+            length: 4783,
+            width: 1897,
+            height: 1348,
+            wheelbase: 2811
+        },
+        modelUrl: '/models/vehicles/chevrolet-camaro-zl1/model.glb',
+        blueprints: {
+            side: '/blueprints/chevrolet-camaro-zl1/side.svg',
+            front: '/blueprints/chevrolet-camaro-zl1/front.svg',
+            rear: '/blueprints/chevrolet-camaro-zl1/rear.svg',
+            top: '/blueprints/chevrolet-camaro-zl1/top.svg'
+        },
+        slots: {
+            'body_front_bumper': {
+                position: [0, 0.15, 2.35],
+                rotation: [0, 0, 0],
+                compatible: ['bodykit-liberty-walk']
+            },
+            'aero_wing': {
+                position: [0, 1.35, -2.15],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.82, 0.34, 1.41],
+                rotation: [0, 0, 0],
+                boltPattern: '5x120',
+                stockSize: 20
+            },
+            'wheel_fr': {
+                position: [0.82, 0.34, 1.41],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x120',
+                stockSize: 20
+            },
+            'wheel_rl': {
+                position: [-0.84, 0.35, -1.41],
+                rotation: [0, 0, 0],
+                boltPattern: '5x120',
+                stockSize: 20
+            },
+            'wheel_rr': {
+                position: [0.84, 0.35, -1.41],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x120',
+                stockSize: 20
+            }
+        },
+        defaultColors: {
+            body: '#18181b',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#dc2626'
+        }
+    },
+    'dodge-challenger-hellcat': {
+        id: 'dodge-challenger-hellcat',
+        name: 'Challenger Hellcat',
+        manufacturer: 'Dodge',
+        year: 2019,
+        dimensions: {
+            length: 5022,
+            width: 1923,
+            height: 1448,
+            wheelbase: 2946
+        },
+        modelUrl: '/models/vehicles/dodge-challenger-hellcat/model.glb',
+        blueprints: {
+            side: '/blueprints/dodge-challenger-hellcat/side.svg',
+            front: '/blueprints/dodge-challenger-hellcat/front.svg',
+            rear: '/blueprints/dodge-challenger-hellcat/rear.svg',
+            top: '/blueprints/dodge-challenger-hellcat/top.svg'
+        },
+        slots: {
+            'body_front_bumper': {
+                position: [0, 0.15, 2.5],
+                rotation: [0, 0, 0],
+                compatible: ['bodykit-liberty-walk']
+            },
+            'aero_wing': {
+                position: [0, 1.45, -2.3],
+                rotation: [0, 0, 0],
+                compatible: ['aero-apr-gtc500', 'aero-voltex-gt-wing']
+            },
+            'wheel_fl': {
+                position: [-0.85, 0.36, 1.47],
+                rotation: [0, 0, 0],
+                boltPattern: '5x115',
+                stockSize: 20
+            },
+            'wheel_fr': {
+                position: [0.85, 0.36, 1.47],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x115',
+                stockSize: 20
+            },
+            'wheel_rl': {
+                position: [-0.87, 0.37, -1.47],
+                rotation: [0, 0, 0],
+                boltPattern: '5x115',
+                stockSize: 20
+            },
+            'wheel_rr': {
+                position: [0.87, 0.37, -1.47],
+                rotation: [0, Math.PI, 0],
+                boltPattern: '5x115',
+                stockSize: 20
+            }
+        },
+        defaultColors: {
+            body: '#c2410c',
+            interior: '#1e293b',
+            wheels: '#18181b',
+            calipers: '#dc2626'
+        }
     }
 }
 
