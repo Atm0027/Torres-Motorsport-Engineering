@@ -1,16 +1,11 @@
 // ============================================
 // TORRES MOTORSPORT ENGINEERING - DATA SERVICE
-// Servicio centralizado de datos con Supabase y fallback local
+// Servicio centralizado de datos - Supabase primero, fallback local solo si falla
+// Optimizado para Cloudflare Pages
 // ============================================
 
-import { vehiclesDatabase as localVehicles } from '@/data/vehicles'
-import { partsCatalog as localParts } from '@/data/parts'
+import { supabase, isSupabaseConfigured } from './supabase'
 import type { Vehicle, Part, PartCategory, PerformanceMetrics, BaseVehicleSpecs, CompatibilityRules, PartStats } from '@/types'
-
-// Verificar si Supabase está configurado via variables de entorno
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_KEY)
 
 // Tipos de la base de datos
 interface DbVehicle {
@@ -60,35 +55,33 @@ interface DbPart {
 }
 
 // ============================================
-// CACHE PARA DATOS
+// CACHE PARA DATOS - Optimizado
 // ============================================
 
 interface DataCache {
-    vehicles: Vehicle[] | null
-    parts: Part[] | null
+    vehicles: Vehicle[]
+    parts: Part[]
     vehiclesById: Map<string, Vehicle>
     partsByCategory: Map<PartCategory, Part[]>
     partsById: Map<string, Part>
-    lastFetch: {
-        vehicles: number
-        parts: number
-    }
+    initialized: boolean
+    loading: boolean
+    error: string | null
 }
 
 const cache: DataCache = {
-    vehicles: null,
-    parts: null,
+    vehicles: [],
+    parts: [],
     vehiclesById: new Map(),
     partsByCategory: new Map(),
     partsById: new Map(),
-    lastFetch: {
-        vehicles: 0,
-        parts: 0
-    }
+    initialized: false,
+    loading: false,
+    error: null
 }
 
-// Tiempo de expiración del cache (5 minutos)
-const CACHE_EXPIRY = 5 * 60 * 1000
+// Promise para evitar múltiples inicializaciones simultáneas
+let initPromise: Promise<void> | null = null
 
 // ============================================
 // TRANSFORMADORES DE DATOS
@@ -198,170 +191,196 @@ function transformDbPart(dbPart: DbPart): Part {
 }
 
 // ============================================
-// FUNCIONES DE CARGA DE DATOS
+// FUNCIONES INTERNAS DE CARGA
 // ============================================
 
-/**
- * Carga todos los vehículos (desde Supabase o fallback local)
- */
-export async function loadVehicles(): Promise<Vehicle[]> {
-    const now = Date.now()
-
-    // Retornar cache si es válido
-    if (cache.vehicles && (now - cache.lastFetch.vehicles) < CACHE_EXPIRY) {
-        return cache.vehicles
+async function fetchVehiclesFromDb(): Promise<Vehicle[]> {
+    if (!supabase) {
+        throw new Error('Supabase no está configurado')
     }
 
-    // Si Supabase no está configurado, usar datos locales directamente
-    if (!isSupabaseConfigured) {
-        console.log('📦 Usando vehículos locales (Supabase no configurado)')
-        cache.vehicles = localVehicles
-        cache.vehiclesById.clear()
-        localVehicles.forEach(v => cache.vehiclesById.set(v.id, v))
-        cache.lastFetch.vehicles = now
-        return localVehicles
+    const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .order('manufacturer, name')
+
+    if (error) {
+        throw new Error(`Error cargando vehículos: ${error.message}`)
     }
 
-    try {
-        console.log('🚗 Cargando vehículos desde Supabase...')
-        // Importar Supabase dinámicamente
-        const { getVehicles } = await import('./supabase')
-        const dbVehicles = await getVehicles()
-        const vehicles = dbVehicles.map(v => transformDbVehicle(v as unknown as DbVehicle))
-
-        // Actualizar cache
-        cache.vehicles = vehicles
-        cache.vehiclesById.clear()
-        for (const vehicle of vehicles) {
-            cache.vehiclesById.set(vehicle.id, vehicle)
-        }
-        cache.lastFetch.vehicles = now
-
-        console.log(`✅ ${vehicles.length} vehículos cargados desde la base de datos`)
-        return vehicles
-    } catch (error) {
-        console.warn('⚠️ Error cargando vehículos desde Supabase, usando datos locales:', error)
-        // Fallback a datos locales
-        cache.vehicles = localVehicles
-        cache.vehiclesById.clear()
-        localVehicles.forEach(v => cache.vehiclesById.set(v.id, v))
-        return localVehicles
-    }
+    return (data || []).map(v => transformDbVehicle(v as unknown as DbVehicle))
 }
 
-/**
- * Carga todas las piezas (desde Supabase o fallback local)
- */
-export async function loadParts(): Promise<Part[]> {
-    const now = Date.now()
-
-    // Retornar cache si es válido
-    if (cache.parts && (now - cache.lastFetch.parts) < CACHE_EXPIRY) {
-        return cache.parts
+async function fetchPartsFromDb(): Promise<Part[]> {
+    if (!supabase) {
+        throw new Error('Supabase no está configurado')
     }
 
-    // Si Supabase no está configurado, usar datos locales directamente
-    if (!isSupabaseConfigured) {
-        console.log('📦 Usando piezas locales (Supabase no configurado)')
-        indexLocalParts()
-        cache.lastFetch.parts = now
-        return localParts
+    const { data, error } = await supabase
+        .from('parts')
+        .select('*')
+        .order('category, name')
+
+    if (error) {
+        throw new Error(`Error cargando piezas: ${error.message}`)
     }
 
-    try {
-        console.log('🔧 Cargando piezas desde Supabase...')
-        // Importar Supabase dinámicamente
-        const { getParts } = await import('./supabase')
-        const dbParts = await getParts()
-        const parts = dbParts.map(p => transformDbPart(p as unknown as DbPart))
-
-        // Actualizar cache e índices
-        cache.parts = parts
-        cache.partsById.clear()
-        cache.partsByCategory.clear()
-
-        for (const part of parts) {
-            cache.partsById.set(part.id, part)
-
-            const categoryParts = cache.partsByCategory.get(part.category) || []
-            categoryParts.push(part)
-            cache.partsByCategory.set(part.category, categoryParts)
-        }
-
-        cache.lastFetch.parts = now
-
-        console.log(`✅ ${parts.length} piezas cargadas desde la base de datos`)
-        return parts
-    } catch (error) {
-        console.warn('⚠️ Error cargando piezas desde Supabase, usando datos locales:', error)
-        // Fallback a datos locales - indexar
-        indexLocalParts()
-        return localParts
-    }
+    return (data || []).map(p => transformDbPart(p as unknown as DbPart))
 }
 
-/**
- * Indexa las piezas locales en el cache
- */
-function indexLocalParts(): void {
-    cache.parts = localParts
+function indexParts(parts: Part[]): void {
     cache.partsById.clear()
     cache.partsByCategory.clear()
 
-    for (const part of localParts) {
+    for (const part of parts) {
         cache.partsById.set(part.id, part)
-
         const categoryParts = cache.partsByCategory.get(part.category) || []
         categoryParts.push(part)
         cache.partsByCategory.set(part.category, categoryParts)
     }
+
+    // Debug: mostrar categorías indexadas
+    console.log('[DataService] Indexed categories:',
+        Array.from(cache.partsByCategory.entries()).map(([cat, parts]) => `${cat}:${parts.length}`).join(', ')
+    )
 }
 
-// ============================================
-// FUNCIONES DE ACCESO SINCRÓNICO (para compatibilidad)
-// ============================================
-
-/**
- * Obtiene los vehículos desde el cache (sincrónico)
- * NOTA: Debe llamarse loadVehicles() primero para poblar el cache
- */
-export function getVehiclesSync(): Vehicle[] {
-    return cache.vehicles || localVehicles
-}
-
-/**
- * Obtiene las piezas desde el cache (sincrónico)
- * NOTA: Debe llamarse loadParts() primero para poblar el cache
- */
-export function getPartsSync(): Part[] {
-    return cache.parts || localParts
-}
-
-/**
- * Obtiene un vehículo por ID desde el cache
- */
-export function getVehicleByIdSync(id: string): Vehicle | undefined {
-    return cache.vehiclesById.get(id) || localVehicles.find(v => v.id === id)
-}
-
-/**
- * Obtiene una pieza por ID desde el cache
- */
-export function getPartByIdSync(id: string): Part | undefined {
-    if (cache.partsById.has(id)) {
-        return cache.partsById.get(id)
+function indexVehicles(vehicles: Vehicle[]): void {
+    cache.vehiclesById.clear()
+    for (const vehicle of vehicles) {
+        cache.vehiclesById.set(vehicle.id, vehicle)
     }
-    return localParts.find(p => p.id === id)
+}
+
+// Fallback a datos locales solo si la DB falla
+async function loadLocalDataFallback(): Promise<void> {
+    console.warn('⚠️ Cargando datos locales como fallback...')
+
+    try {
+        const [{ vehiclesDatabase }, { partsCatalog }] = await Promise.all([
+            import('@/data/vehicles'),
+            import('@/data/parts')
+        ])
+
+        cache.vehicles = vehiclesDatabase
+        cache.parts = partsCatalog
+        indexVehicles(vehiclesDatabase)
+        indexParts(partsCatalog)
+        cache.initialized = true
+
+        console.log(`📦 Datos locales cargados: ${vehiclesDatabase.length} vehículos, ${partsCatalog.length} piezas`)
+    } catch (e) {
+        console.error('❌ Error cargando datos locales:', e)
+        cache.error = 'No se pudieron cargar los datos'
+    }
+}
+
+// ============================================
+// INICIALIZACIÓN PRINCIPAL
+// ============================================
+
+export async function initializeDataService(): Promise<void> {
+    // Si ya está inicializado, retornar
+    if (cache.initialized) {
+        return
+    }
+
+    // Si ya hay una inicialización en curso, esperar a que termine
+    if (initPromise) {
+        return initPromise
+    }
+
+    // Verificar que Supabase esté configurado
+    if (!isSupabaseConfigured) {
+        console.warn('⚠️ Supabase no está configurado. Usando datos locales.')
+        await loadLocalDataFallback()
+        return
+    }
+
+    cache.loading = true
+    cache.error = null
+
+    initPromise = (async () => {
+        const startTime = performance.now()
+        console.log('🚀 Inicializando servicio de datos desde Supabase...')
+
+        try {
+            // Cargar vehículos y piezas en paralelo
+            const [vehicles, parts] = await Promise.all([
+                fetchVehiclesFromDb(),
+                fetchPartsFromDb()
+            ])
+
+            // Guardar en cache
+            cache.vehicles = vehicles
+            cache.parts = parts
+
+            // Crear índices
+            indexVehicles(vehicles)
+            indexParts(parts)
+
+            cache.initialized = true
+            cache.loading = false
+
+            const elapsed = Math.round(performance.now() - startTime)
+            console.log(`✅ Datos cargados: ${vehicles.length} vehículos, ${parts.length} piezas (${elapsed}ms)`)
+
+        } catch (error) {
+            console.error('❌ Error inicializando desde Supabase:', error)
+            cache.error = error instanceof Error ? error.message : 'Error desconocido'
+            cache.loading = false
+
+            // Intentar cargar datos locales como fallback
+            await loadLocalDataFallback()
+        }
+    })()
+
+    return initPromise
+}
+
+// ============================================
+// CARGA ASYNC (para componentes que lo necesiten)
+// ============================================
+
+export async function loadVehicles(): Promise<Vehicle[]> {
+    if (!cache.initialized) {
+        await initializeDataService()
+    }
+    return cache.vehicles
+}
+
+export async function loadParts(): Promise<Part[]> {
+    if (!cache.initialized) {
+        await initializeDataService()
+    }
+    return cache.parts
+}
+
+// ============================================
+// FUNCIONES DE ACCESO SINCRÓNICO
+// ============================================
+
+export function getVehiclesSync(): Vehicle[] {
+    return cache.vehicles
+}
+
+export function getPartsSync(): Part[] {
+    return cache.parts
+}
+
+export function getVehicleByIdSync(id: string): Vehicle | undefined {
+    return cache.vehiclesById.get(id)
+}
+
+export function getPartByIdSync(id: string): Part | undefined {
+    return cache.partsById.get(id)
 }
 
 /**
  * Obtiene piezas por categoría desde el cache
  */
 export function getPartsByCategorySync(category: PartCategory): Part[] {
-    if (cache.partsByCategory.has(category)) {
-        return cache.partsByCategory.get(category) || []
-    }
-    return localParts.filter(p => p.category === category)
+    return cache.partsByCategory.get(category) || []
 }
 
 /**
@@ -373,8 +392,10 @@ export function getPartsByCategoriesSync(categories: PartCategory[]): Part[] {
     const result: Part[] = []
     for (const category of categories) {
         const parts = getPartsByCategorySync(category)
+        console.log(`[DataService] getPartsByCategoriesSync: ${category} → ${parts.length} parts`)
         result.push(...parts)
     }
+    console.log(`[DataService] Total for categories ${categories.join(',')}: ${result.length} parts`)
     return result
 }
 
@@ -382,8 +403,7 @@ export function getPartsByCategoriesSync(categories: PartCategory[]): Part[] {
  * Obtiene todas las marcas únicas
  */
 export function getAllBrandsSync(): string[] {
-    const parts = cache.parts || localParts
-    const brands = new Set(parts.map(p => p.brand))
+    const brands = new Set(cache.parts.map(p => p.brand))
     return Array.from(brands).sort()
 }
 
@@ -391,86 +411,47 @@ export function getAllBrandsSync(): string[] {
  * Obtiene todas las categorías disponibles
  */
 export function getAvailableCategoriesSync(): PartCategory[] {
-    if (cache.partsByCategory.size > 0) {
-        return Array.from(cache.partsByCategory.keys())
-    }
-    const categories = new Set(localParts.map(p => p.category))
-    return Array.from(categories)
+    return Array.from(cache.partsByCategory.keys())
 }
 
 // ============================================
-// INICIALIZACIÓN
+// ESTADO Y UTILIDADES
 // ============================================
 
-let initialized = false
-
-/**
- * Inicializa el servicio de datos cargando vehículos y piezas
- * Llamar esta función al inicio de la app
- */
-export async function initializeDataService(): Promise<void> {
-    if (initialized) return
-
-    console.log('🚀 Inicializando servicio de datos...')
-
-    // Timeout de 5 segundos para evitar que la app se quede cargando indefinidamente
-    const timeout = new Promise<void>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout: Carga de datos excedió 5 segundos')), 5000)
-    })
-
-    try {
-        await Promise.race([
-            Promise.all([
-                loadVehicles(),
-                loadParts()
-            ]),
-            timeout
-        ])
-        initialized = true
-        console.log('✅ Servicio de datos inicializado correctamente')
-    } catch (error) {
-        console.warn('⚠️ Error o timeout inicializando servicio de datos:', error)
-        // Usar datos locales como fallback
-        console.log('📦 Usando datos locales como fallback')
-        cache.vehicles = localVehicles
-        cache.vehiclesById.clear()
-        localVehicles.forEach(v => cache.vehiclesById.set(v.id, v))
-        indexLocalParts()
-        initialized = true
-    }
+export function isDataLoaded(): boolean {
+    return cache.initialized
 }
 
-/**
- * Fuerza una recarga de datos desde la base de datos
- */
+export function isDataLoading(): boolean {
+    return cache.loading
+}
+
+export function getDataError(): string | null {
+    return cache.error
+}
+
 export async function refreshData(): Promise<void> {
-    cache.lastFetch.vehicles = 0
-    cache.lastFetch.parts = 0
-    await Promise.all([
-        loadVehicles(),
-        loadParts()
-    ])
+    cache.initialized = false
+    initPromise = null
+    await initializeDataService()
 }
 
-/**
- * Limpia el cache
- */
 export function clearCache(): void {
-    cache.vehicles = null
-    cache.parts = null
+    cache.vehicles = []
+    cache.parts = []
     cache.vehiclesById.clear()
     cache.partsByCategory.clear()
     cache.partsById.clear()
-    cache.lastFetch.vehicles = 0
-    cache.lastFetch.parts = 0
-    initialized = false
+    cache.initialized = false
+    cache.loading = false
+    cache.error = null
+    initPromise = null
 }
 
 // ============================================
 // EXPORTS PARA COMPATIBILIDAD
 // ============================================
 
-// Re-exportar con nombres compatibles para facilitar la migración
 export {
     getVehiclesSync as vehiclesDatabase,
     getPartsSync as partsCatalog,

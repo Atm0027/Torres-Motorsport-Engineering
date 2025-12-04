@@ -31,6 +31,7 @@ import { Badge } from '@components/ui/Badge'
 import { StatBar } from '@components/ui/ProgressBar'
 import { useNotify } from '@stores/uiStore'
 import { getVehiclesSync, getVehicleByIdSync, initializeDataService } from '@/services/dataService'
+import { preloadVehicleModel } from '@components/vehicle/Vehicle3DCanvas'
 import { VIEW_MODES } from '@/constants'
 import { formatCurrency } from '@utils/formatters'
 import type { PartCategory, Vehicle, PerformanceMetrics, User } from '@/types'
@@ -153,18 +154,58 @@ export function GaragePage() {
     const [showOverlay, setShowOverlay] = useState(true)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [dataLoaded, setDataLoaded] = useState(false)
+    const [loadError, setLoadError] = useState<string | null>(null)
 
-    // Inicializar servicio de datos
+    // Inicializar servicio de datos y precargar modelo por defecto
     useEffect(() => {
-        initializeDataService().then(() => {
-            setDataLoaded(true)
-        })
-    }, [])
+        const loadData = async () => {
+            try {
+                // Precargar el modelo 3D del vehículo por defecto en paralelo con los datos
+                preloadVehicleModel('nissan-skyline-r34')
 
-    // Hook para filtrar partes
+                await initializeDataService()
+
+                // Hidratar el vehículo actual con datos frescos de la DB
+                // Esto asegura que baseSpecs esté completo (localStorage puede tener datos antiguos)
+                if (currentVehicle) {
+                    const freshVehicle = getVehicleByIdSync(currentVehicle.id)
+                    if (freshVehicle) {
+                        // Mantener las partes instaladas y livery, pero usar baseSpecs frescos
+                        const hydratedVehicle: Vehicle = {
+                            ...freshVehicle,
+                            installedParts: currentVehicle.installedParts || [],
+                            livery: currentVehicle.livery || freshVehicle.livery,
+                        }
+                        setCurrentVehicle(hydratedVehicle)
+                    }
+                } else {
+                    // Si no hay vehículo, seleccionar el primero por defecto
+                    const vehicles = getVehiclesSync()
+                    if (vehicles.length > 0) {
+                        setCurrentVehicle(vehicles[0])
+                    }
+                }
+
+                setDataLoaded(true)
+            } catch (error) {
+                console.error('Error cargando datos:', error)
+                setLoadError(error instanceof Error ? error.message : 'Error desconocido')
+            }
+        }
+        loadData()
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Precargar modelo cuando cambia el vehículo
+    useEffect(() => {
+        if (currentVehicle) {
+            preloadVehicleModel(currentVehicle.id)
+        }
+    }, [currentVehicle?.id])
+
+    // Hook para filtrar partes - solo si hay datos cargados
     const currentSectionData = GARAGE_SECTIONS[activeSection]
     const { sectionParts, compatibleParts } = usePartsFilter(
-        currentSectionData.categories,
+        dataLoaded ? currentSectionData.categories : [],
         currentVehicle,
         selectedSystem
     )
@@ -269,6 +310,38 @@ export function GaragePage() {
     }, [notify])
 
     const metrics = currentVehicle?.currentMetrics
+
+    // Mostrar pantalla de carga mientras se cargan los datos
+    if (!dataLoaded) {
+        return (
+            <div className="h-full flex items-center justify-center bg-torres-dark-900">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-torres-primary mx-auto mb-4"></div>
+                    <p className="text-torres-light-300 text-lg">Cargando garaje...</p>
+                    <p className="text-torres-light-500 text-sm mt-2">Conectando con la base de datos</p>
+                </div>
+            </div>
+        )
+    }
+
+    // Mostrar error si hay problemas de carga
+    if (loadError) {
+        return (
+            <div className="h-full flex items-center justify-center bg-torres-dark-900">
+                <div className="text-center max-w-md">
+                    <div className="text-torres-danger text-5xl mb-4">⚠️</div>
+                    <h2 className="text-torres-light-100 text-xl font-semibold mb-2">Error de Conexión</h2>
+                    <p className="text-torres-light-400 mb-4">{loadError}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-torres-primary text-torres-dark-900 rounded-lg hover:bg-torres-primary/90 transition-colors"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="h-full flex">

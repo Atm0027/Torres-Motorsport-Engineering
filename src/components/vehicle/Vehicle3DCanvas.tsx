@@ -1,44 +1,19 @@
 import React, { Suspense, useRef, useEffect, useState, useCallback, useMemo, memo } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { OrbitControls, useGLTF, Bounds, useBounds, Preload, Environment } from '@react-three/drei'
+import { OrbitControls, useGLTF, Bounds, useBounds, Preload } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Vehicle } from '@/types'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 // =============================================================================
-// MAPEO DE ENTORNOS A ARCHIVOS HDR LOCALES
+// OPTIMIZACIÓN: Sin archivos HDR - usamos iluminación programática
 // =============================================================================
-const ENVIRONMENT_HDR_FILES: Record<string, string> = {
-    'studio': '/environments/studio.hdr',
-    'garage': '/environments/garage.hdr',
-    'outdoor': '/environments/outdoor.hdr',
-    'showroom': '/environments/showroom.hdr'
-}
 
 // =============================================================================
-// PRECARGA DE MODELOS
+// PRECARGA LAZY DE MODELOS - Solo el actual
 // =============================================================================
-const VEHICLE_IDS = [
-    'nissan-skyline-r34',
-    'toyota-supra-a80',
-    'mazda-rx7-fd',
-    'honda-nsx',
-    'mitsubishi-evo-ix',
-    'subaru-impreza-sti',
-    // European Performance
-    'bmw-m3-e46',
-    'porsche-911-gt3-997',
-    'mercedes-amg-gtr',
-    // American Muscle
-    'ford-mustang-gt500',
-    'chevrolet-camaro-zl1',
-    'dodge-challenger-hellcat'
-]
 
-// Mapeo de rutas de modelos (algunos usan base.glb, otros model.glb)
-// Cache-busting automático: usa el timestamp del build
-const BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIME || ''
-
+// Mapeo de rutas de modelos
 const MODEL_FILE_PATHS: Record<string, string> = {
     'nissan-skyline-r34': '/models/vehicles/nissan-skyline-r34/base.glb',
     'toyota-supra-a80': '/models/vehicles/toyota-supra-a80/base.glb',
@@ -46,7 +21,6 @@ const MODEL_FILE_PATHS: Record<string, string> = {
     'honda-nsx': '/models/vehicles/honda-nsx/base.glb',
     'mitsubishi-evo-ix': '/models/vehicles/mitsubishi-evo-ix/base.glb',
     'subaru-impreza-sti': '/models/vehicles/subaru-impreza-sti/base.glb',
-    // Nuevos modelos usan model.glb
     'bmw-m3-e46': '/models/vehicles/bmw-m3-e46/model.glb',
     'porsche-911-gt3-997': '/models/vehicles/porsche-911-gt3-997/model.glb',
     'mercedes-amg-gtr': '/models/vehicles/mercedes-amg-gtr/model.glb',
@@ -55,16 +29,24 @@ const MODEL_FILE_PATHS: Record<string, string> = {
     'dodge-challenger-hellcat': '/models/vehicles/dodge-challenger-hellcat/model.glb'
 }
 
-// Función helper para obtener la ruta del modelo con cache-busting automático
+// Función helper para obtener la ruta del modelo
 function getModelPath(vehicleId: string): string {
-    const basePath = MODEL_FILE_PATHS[vehicleId] || `/models/vehicles/${vehicleId}/base.glb`
-    return BUILD_TIMESTAMP ? `${basePath}?t=${BUILD_TIMESTAMP}` : basePath
+    return MODEL_FILE_PATHS[vehicleId] || `/models/vehicles/${vehicleId}/base.glb`
 }
 
-// Precargar todos los modelos al cargar el módulo
-VEHICLE_IDS.forEach(id => {
-    useGLTF.preload(getModelPath(id))
-})
+// Cache de modelos precargados
+const preloadedModels = new Set<string>()
+
+// Función para precargar un modelo específico (lazy)
+export function preloadVehicleModel(vehicleId: string): void {
+    if (!preloadedModels.has(vehicleId)) {
+        const path = getModelPath(vehicleId)
+        useGLTF.preload(path)
+        preloadedModels.add(vehicleId)
+    }
+}
+
+// NO precargamos todos los modelos - solo bajo demanda
 
 // =============================================================================
 // OPTIMIZACIÓN: Pre-cargar geometrías y materiales reutilizables
@@ -149,23 +131,19 @@ const createFloorMaterial = (config: EnvironmentConfig) => {
 }
 
 // =============================================================================
-// COMPONENTE: Iluminación por Entorno (con HDR + luces de apoyo)
+// COMPONENTE: Iluminación por Entorno (OPTIMIZADO - sin HDR)
 // =============================================================================
 const EnvironmentLighting = memo(({ environment }: { environment: EnvironmentType }) => {
     const config = ENVIRONMENT_CONFIGS[environment]
-    const hdrFile = ENVIRONMENT_HDR_FILES[environment]
 
     return (
         <>
-            {/* Entorno HDR para reflexiones y luz ambiental */}
-            <Environment files={hdrFile} background={false} />
-
-            {/* Luz ambiental base (reducida porque HDR aporta) */}
-            <ambientLight intensity={config.ambient.intensity * 0.5} color={config.ambient.color} />
+            {/* Luz ambiental base */}
+            <ambientLight intensity={config.ambient.intensity} color={config.ambient.color} />
 
             {/* Luz hemisférica para simular cielo/suelo */}
             <hemisphereLight
-                intensity={config.hemisphere.intensity * 0.5}
+                intensity={config.hemisphere.intensity}
                 color={config.hemisphere.skyColor}
                 groundColor={config.hemisphere.groundColor}
             />

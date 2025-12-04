@@ -161,11 +161,40 @@ export function usePartsFilter(
 ): UsePartsFilterReturn {
     // Usar índice optimizado en lugar de filtrar todo el catálogo
     const sectionParts = useMemo(() => {
-        if (!categories.length || !currentVehicle) return []
+        if (!categories.length || !currentVehicle) {
+            console.log('[usePartsFilter] No categories or vehicle:', { categories, vehicleId: currentVehicle?.id })
+            return []
+        }
+
+        // Validar que el vehículo tiene baseSpecs
+        if (!currentVehicle.baseSpecs || !currentVehicle.baseSpecs.engine) {
+            console.warn('[usePartsFilter] Vehicle missing baseSpecs:', currentVehicle.id, currentVehicle.baseSpecs)
+            return []
+        }
+
         // Obtener partes por categoría usando índice O(n) donde n es categorías, no partes totales
         const categoryParts = getPartsByCategories(categories)
+        console.log('[usePartsFilter] Category parts count:', categoryParts.length, 'for categories:', categories)
+
+        // Log de specs del vehículo para debug
+        console.log('[usePartsFilter] Vehicle specs:', {
+            id: currentVehicle.id,
+            engineType: currentVehicle.baseSpecs.engine.type,
+            drivetrain: currentVehicle.baseSpecs.drivetrain,
+            engineLayout: currentVehicle.baseSpecs.engineLayout
+        })
+
         // Filtrar solo por compatibilidad
-        return categoryParts.filter(part => checkCompatibility(part, currentVehicle).compatible)
+        const compatible = categoryParts.filter(part => {
+            const result = checkCompatibility(part, currentVehicle)
+            if (!result.compatible) {
+                console.log('[usePartsFilter] Part not compatible:', part.id, result.reason)
+            }
+            return result.compatible
+        })
+
+        console.log('[usePartsFilter] Compatible parts:', compatible.length, 'of', categoryParts.length)
+        return compatible
     }, [categories, currentVehicle])
 
     const compatibleParts = useMemo(() => {

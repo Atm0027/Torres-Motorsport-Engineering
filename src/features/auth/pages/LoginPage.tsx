@@ -46,17 +46,19 @@ export function LoginPage() {
 
         setIsLoading(true)
 
-        // Simular delay de autenticación
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        try {
+            const success = await login(formData.email, formData.password)
 
-        const success = login(formData.email, formData.password)
-
-        if (success) {
-            notify.success('¡Bienvenido!', 'Has iniciado sesión correctamente')
-            navigate('/')
-        } else {
-            notify.error('Error', 'Credenciales incorrectas')
-            setErrors({ password: 'Email o contraseña incorrectos' })
+            if (success) {
+                notify.success('¡Bienvenido!', 'Has iniciado sesión correctamente')
+                navigate('/')
+            } else {
+                notify.error('Error', 'Credenciales incorrectas')
+                setErrors({ password: 'Email o contraseña incorrectos' })
+            }
+        } catch (error) {
+            notify.error('Error', 'No se pudo iniciar sesión')
+            console.error('Error en login:', error)
         }
 
         setIsLoading(false)
@@ -97,6 +99,7 @@ export function LoginPage() {
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className={`input pl-11 ${errors.email ? 'border-torres-danger' : ''}`}
                                     placeholder="tu@email.com"
+                                    autoComplete="email"
                                 />
                             </div>
                             {errors.email && (
@@ -117,6 +120,7 @@ export function LoginPage() {
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     className={`input pl-11 pr-11 ${errors.password ? 'border-torres-danger' : ''}`}
                                     placeholder="••••••••"
+                                    autoComplete="current-password"
                                 />
                                 <button
                                     type="button"

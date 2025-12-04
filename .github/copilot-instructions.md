@@ -11,7 +11,9 @@ Torres Motorsport Engineering es un simulador profesional de modificación de ve
 - ✅ Cálculos de rendimiento en tiempo real
 - ✅ 12 vehículos disponibles (JDM, Europeos, Americanos)
 - ✅ Selector de colores/livery
-- ⏳ Backend Firebase (planificado)
+- ✅ Backend Supabase (PostgreSQL)
+- ✅ Autenticación de usuarios
+- ✅ Deploy en Cloudflare Pages
 - ⏳ Sistema de comunidad (planificado)
 
 ---
@@ -22,12 +24,13 @@ Torres Motorsport Engineering es un simulador profesional de modificación de ve
 |------------|---------|-----|
 | React | 18.2 | Framework UI |
 | TypeScript | 5.2 | Tipado estático |
-| Vite | 5.0 | Bundler + HMR |
+| Vite | 6.0 | Bundler + HMR |
 | Tailwind CSS | 3.3 | Estilos utility-first |
 | Zustand | 4.4 | State management |
-| Three.js | - | Renderizado 3D |
-| @react-three/fiber | - | React renderer para Three.js |
-| @react-three/drei | - | Helpers para R3F (OrbitControls, useGLTF) |
+| Three.js | 0.159 | Renderizado 3D |
+| @react-three/fiber | 8.x | React renderer para Three.js |
+| @react-three/drei | 9.x | Helpers para R3F (OrbitControls, useGLTF) |
+| Supabase | Latest | Backend + Auth + PostgreSQL |
 | Lucide React | - | Iconos |
 | Framer Motion | - | Animaciones |
 

@@ -4,35 +4,50 @@
 
 [![React](https://img.shields.io/badge/React-18.2-blue)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-5.0-purple)](https://vitejs.dev)
-[![Three.js](https://img.shields.io/badge/Three.js-Latest-green)](https://threejs.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.3-blue)](https://tailwindcss.com)
+[![Vite](https://img.shields.io/badge/Vite-6.0-purple)](https://vitejs.dev)
+[![Three.js](https://img.shields.io/badge/Three.js-0.159-green)](https://threejs.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-green)](https://supabase.com)
 
-## 🎮 Demo
+## 🌐 Demo en Producción
 
-Aplicación completamente en **español** con:
+**URL**: https://torres-motorsport-engineering.pages.dev
+
+## 🎮 Características
+
 - ✅ Visualización 3D interactiva de 12 vehículos
-- ✅ Sistema de colores por zonas (carrocería, llantas, interiores, etc.)
-- ✅ Acabados realistas (brillante, mate, metálico, cromado, etc.)
+- ✅ Sistema de colores por zonas (carrocería, llantas, interiores)
+- ✅ Acabados realistas (brillante, mate, metálico, cromado)
 - ✅ Vistas técnicas de planos (blueprints)
 - ✅ Cálculos de rendimiento en tiempo real
 - ✅ Sistema de compatibilidad de piezas
+- ✅ Backend con Supabase (PostgreSQL)
+- ✅ Autenticación de usuarios
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos
-- Node.js 16+
-- npm o yarn
+- Node.js 18+
+- npm o pnpm
 
 ### Instalación
+
 ```bash
+# Clonar repositorio
 git clone https://github.com/Atm0027/App-edicion-de-coches.git
 cd "App edicion de coches"
+
+# Instalar dependencias
 npm install
+
+# Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales de Supabase
+
+# Iniciar servidor de desarrollo
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+La aplicación estará disponible en **http://localhost:3001**
 
 ## 📦 Tech Stack
 
@@ -40,75 +55,33 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 |-----------|---------|-----|
 | React | 18.2 | Framework UI |
 | TypeScript | 5.2 | Tipado estático |
-| Vite | 5.0 | Bundler + HMR |
+| Vite | 6.0 | Bundler + HMR |
 | Tailwind CSS | 3.3 | Estilos |
 | Zustand | 4.4 | State management |
-| Three.js | Latest | Renderizado 3D |
-| @react-three/fiber | Latest | React para Three.js |
-| Framer Motion | Latest | Animaciones |
+| Three.js | 0.159 | Renderizado 3D |
+| @react-three/fiber | 8.x | React para Three.js |
+| Supabase | Latest | Backend + Auth + DB |
+| Cloudflare Pages | - | Hosting |
 
 ## 🚙 Vehículos Disponibles
 
 ### JDM Legends
-- 🏎️ **Nissan Skyline R34 GT-R** - RB26DETT Twin-Turbo I6 (AWD)
-- 🏎️ **Toyota Supra A80** - 2JZ-GTE Twin-Turbo I6 (RWD)
-- 🏎️ **Mazda RX-7 FD** - 13B-REW Twin-Turbo Rotary (RWD)
-- 🏎️ **Honda NSX NA1** - C30A V6 NA (RWD)
-- 🏎️ **Mitsubishi Lancer Evo IX** - 4G63T Turbo I4 (AWD)
-- 🏎️ **Subaru Impreza WRX STI** - EJ257 Turbo Flat-4 (AWD)
+- Nissan Skyline R34 GT-R (RB26DETT Twin-Turbo I6, AWD)
+- Toyota Supra A80 (2JZ-GTE Twin-Turbo I6, RWD)
+- Mazda RX-7 FD (13B-REW Twin-Turbo Rotary, RWD)
+- Honda NSX NA1 (C30A V6 NA, RWD)
+- Mitsubishi Lancer Evo IX (4G63T Turbo I4, AWD)
+- Subaru Impreza WRX STI (EJ257 Turbo Flat-4, AWD)
 
 ### European Performance
-- 🏁 **BMW M3 CSL** - S54 I6 NA (RWD)
-- 🏁 **Porsche 911 GT3 RS** - Flat-6 NA (RWD)
-- 🏁 **Mercedes-AMG GT R** - V8 Biturbo (RWD)
+- BMW M3 CSL (S54 I6 NA, RWD)
+- Porsche 911 GT3 RS (Flat-6 NA, RWD)
+- Mercedes-AMG GT R (V8 Biturbo, RWD)
 
 ### American Muscle
-- 💪 **Ford Shelby GT500** - V8 Supercharged (RWD)
-- 💪 **Chevy Camaro ZL1** - LT4 V8 Supercharged (RWD)
-- 💪 **Dodge Challenger Hellcat** - HEMI V8 Supercharged (RWD)
-
-## 🎨 Características
-
-### Sistema 3D Avanzado
-- Renderizado con Three.js + React Three Fiber
-- Modelos GLB optimizados
-- OrbitControls para navegación suave
-- Sombras dinámicas y lighting realista
-- Environment mapping automático
-
-### Sistema de Colores por Zonas
-- **Carrocería** - Color principal con acabados
-- **Llantas** - Independientes de carrocería (sistema especial para R34)
-- **Pinzas de freno** - Detalles técnicos
-- **Interior** - Personalizables
-- **Acentos** - Detalles decorativos
-- **Aerodinámica** - Componentes adicionales
-- **Luces** - Faros y pilotos
-
-### Acabados Realistas
-```typescript
-gloss       // Pintura de fábrica (brillante)
-matte       // Sin brillo (aterciopelado)
-satin       // Semi-brillo elegante
-metallic    // Con partículas metálicas
-pearl       // Efecto iridiscente
-chrome      // Espejo perfecto
-```
-
-### Vistas Técnicas
-- Vista frontal
-- Vista trasera
-- Vista lateral (ambos lados)
-- Vista superior
-- Vista isométrica 3/4
-
-### Cálculos de Rendimiento
-- Potencia (HP)
-- Torque (Nm)
-- Peso del vehículo
-- Aceleración 0-100 km/h
-- Velocidad máxima
-- Cuarto de milla
+- Ford Shelby GT500 (V8 Supercharged, RWD)
+- Chevy Camaro ZL1 (LT4 V8 Supercharged, RWD)
+- Dodge Challenger Hellcat (HEMI V8 Supercharged, RWD)
 
 ## 📁 Estructura del Proyecto
 
@@ -125,60 +98,28 @@ src/
 │   ├── catalog/        # Catálogo de piezas
 │   └── community/      # Funciones sociales
 ├── stores/              # Estado global (Zustand)
-├── services/            # Carga de modelos y APIs
+├── services/            # APIs y carga de datos
 ├── hooks/               # Custom React hooks
 ├── types/               # Tipos TypeScript
-├── utils/               # Utilidades
-└── styles/              # Estilos globales
+└── utils/               # Utilidades
 
-public/
-├── models/vehicles/     # Modelos GLB
-└── blueprints/          # Vistas técnicas SVG
+public/models/vehicles/  # Modelos GLB por vehículo
+database/                # Scripts SQL para Supabase
 ```
-
-## 🔧 Características Técnicas Avanzadas
-
-### Separación Dinámica de Llantas (R34)
-El Nissan Skyline R34 tiene un sistema especial donde las llantas están fusionadas con la carrocería. Se detectan dinámicamente:
-```typescript
-// Detección por posición geométrica
-- X: Delantera (2.30) vs Trasera (1.26)
-- Y: Derecha (0.80) vs Izquierda (-2.30)
-- Z: Altura de llanta (0.32-0.75)
-```
-
-Esto permite colorear las llantas independientemente sin modificar el archivo GLB.
-
-### Optimizaciones
-- Model caching en memoria
-- Lazy loading de modelos 3D
-- Material cloning automático
-- Geometría optimizada (sin UV2)
-- Frustum culling habilitado
-
-### Estado Global Eficiente
-- Zustand para gestión de estado
-- Selectores específicos para optimización
-- Persistencia local (localStorage)
 
 ## 📝 Comandos
 
 ```bash
-# Desarrollo
-npm run dev
-
-# Build producción
-npm run build
-
-# Preview del build
-npm run preview
-
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
+npm run dev        # Desarrollo (localhost:3001)
+npm run build      # Build producción
+npm run preview    # Preview del build
+npm run typecheck  # Verificar tipos
+npm run lint       # ESLint
 ```
+
+## 🔧 Configuración de Base de Datos
+
+Ver [database/README.md](./database/README.md) para instrucciones de configuración de Supabase.
 
 ## 🎯 Estado del Proyecto
 
@@ -189,23 +130,10 @@ npm run lint
 | Vistas de planos | ✅ Completo |
 | Cálculos de rendimiento | ✅ Completo |
 | 12 vehículos | ✅ Completo |
-| Compatibilidad de piezas | ✅ Funcional |
-| Backend Firebase | ⏳ Planificado |
-| Sistema de comunidad | ⏳ Planificado |
-| Guardar configuraciones | ⏳ Planificado |
-| Compartir builds | ⏳ Planificado |
-
-## 📚 Documentación
-
-- [SETUP.md](./SETUP.md) - Guía completa de configuración
-- [.github/copilot-instructions.md](./.github/copilot-instructions.md) - Instrucciones para Copilot
-
-## 🔐 Seguridad
-
-- ✅ TypeScript strict mode
-- ✅ No se incluye credenciales en el repo
-- ✅ .gitignore configurado correctamente
-- ✅ Dependencias actualizadas
+| Compatibilidad de piezas | ✅ Completo |
+| Backend Supabase | ✅ Completo |
+| Autenticación | ✅ Completo |
+| Sistema de comunidad | ⏳ En desarrollo |
 
 ## 📄 Licencia
 
@@ -213,10 +141,4 @@ Este proyecto es de código cerrado.
 
 ## 👨‍💻 Autor
 
-**Torres Motorsport Engineering**
-
----
-
-**Última actualización**: 2 de diciembre de 2025
-
-*Aplicación profesional de simulación de modificación de vehículos con tecnología 3D moderna.*
+**Torres Motorsport Engineering** - 2025

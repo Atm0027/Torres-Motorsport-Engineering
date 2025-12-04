@@ -14,13 +14,9 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Modelos 3D GLB - cache corto para permitir actualizaciones
+# Modelos 3D GLB - cache largo (los modelos no cambian frecuentemente)
 /models/*
-  Cache-Control: public, max-age=3600, must-revalidate
-
-# Entornos HDR
-/environments/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
 
 # Blueprints SVG
 /blueprints/*

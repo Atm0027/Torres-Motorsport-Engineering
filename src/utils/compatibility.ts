@@ -18,9 +18,33 @@ export function checkCompatibility(part: Part, vehicle: Vehicle): CompatibilityR
     const { baseSpecs, installedParts } = vehicle
     const warnings: string[] = []
 
+    // Validar que la parte tiene datos de compatibilidad válidos
+    if (!compatibility) {
+        console.warn('[Compatibility] Parte sin datos de compatibilidad:', part.id)
+        // Permitir la parte si no hay reglas de compatibilidad
+        return { compatible: true }
+    }
+
+    // Validar que el vehículo tiene baseSpecs válidos
+    if (!baseSpecs || !baseSpecs.engine) {
+        console.warn('[Compatibility] Vehículo sin baseSpecs válidos:', vehicle.id, baseSpecs)
+        // Permitir la parte si no hay specs para validar (mejor que bloquear todo)
+        return { compatible: true, warnings: ['No se pudo verificar compatibilidad completa'] }
+    }
+
+    // Debug: mostrar valores que se comparan
+    if (compatibility.mountTypes && compatibility.mountTypes.length > 0) {
+        console.log('[Compatibility] Checking mountTypes:', {
+            partId: part.id,
+            requiredTypes: compatibility.mountTypes,
+            vehicleType: baseSpecs.engine.type,
+            matches: compatibility.mountTypes.includes(baseSpecs.engine.type)
+        })
+    }
+
     // Check mount type compatibility (for engine-related parts)
     // Nota: supercargadores pueden instalarse en motores turbo (con advertencia), no aplicar restricción mountTypes
-    if (compatibility.mountTypes.length > 0) {
+    if (compatibility.mountTypes && compatibility.mountTypes.length > 0) {
         if (!compatibility.mountTypes.includes(baseSpecs.engine.type)) {
             // Excepción: superchargers en motores turbo generan advertencia, no incompatibilidad
             if (part.category === 'supercharger' && !baseSpecs.engine.naturallyAspirated) {
@@ -35,7 +59,7 @@ export function checkCompatibility(part: Part, vehicle: Vehicle): CompatibilityR
     }
 
     // Check drivetrain compatibility
-    if (compatibility.drivetrains.length > 0) {
+    if (compatibility.drivetrains && compatibility.drivetrains.length > 0) {
         if (!compatibility.drivetrains.includes(baseSpecs.drivetrain)) {
             return {
                 compatible: false,
@@ -45,7 +69,7 @@ export function checkCompatibility(part: Part, vehicle: Vehicle): CompatibilityR
     }
 
     // Check engine layout compatibility
-    if (compatibility.engineLayouts.length > 0) {
+    if (compatibility.engineLayouts && compatibility.engineLayouts.length > 0) {
         if (!compatibility.engineLayouts.includes(baseSpecs.engineLayout)) {
             return {
                 compatible: false,
