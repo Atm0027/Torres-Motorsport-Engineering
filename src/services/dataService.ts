@@ -238,6 +238,11 @@ function indexParts(parts: Part[]): void {
         categoryParts.push(part)
         cache.partsByCategory.set(part.category, categoryParts)
     }
+
+    // Debug: mostrar categorías indexadas
+    console.log('[DataService] Indexed categories:',
+        Array.from(cache.partsByCategory.entries()).map(([cat, parts]) => `${cat}:${parts.length}`).join(', ')
+    )
 }
 
 function indexVehicles(vehicles: Vehicle[]): void {
@@ -387,8 +392,10 @@ export function getPartsByCategoriesSync(categories: PartCategory[]): Part[] {
     const result: Part[] = []
     for (const category of categories) {
         const parts = getPartsByCategorySync(category)
+        console.log(`[DataService] getPartsByCategoriesSync: ${category} → ${parts.length} parts`)
         result.push(...parts)
     }
+    console.log(`[DataService] Total for categories ${categories.join(',')}: ${result.length} parts`)
     return result
 }
 

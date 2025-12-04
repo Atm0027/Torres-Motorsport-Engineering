@@ -164,6 +164,28 @@ export function GaragePage() {
                 preloadVehicleModel('nissan-skyline-r34')
 
                 await initializeDataService()
+
+                // Hidratar el vehículo actual con datos frescos de la DB
+                // Esto asegura que baseSpecs esté completo (localStorage puede tener datos antiguos)
+                if (currentVehicle) {
+                    const freshVehicle = getVehicleByIdSync(currentVehicle.id)
+                    if (freshVehicle) {
+                        // Mantener las partes instaladas y livery, pero usar baseSpecs frescos
+                        const hydratedVehicle: Vehicle = {
+                            ...freshVehicle,
+                            installedParts: currentVehicle.installedParts || [],
+                            livery: currentVehicle.livery || freshVehicle.livery,
+                        }
+                        setCurrentVehicle(hydratedVehicle)
+                    }
+                } else {
+                    // Si no hay vehículo, seleccionar el primero por defecto
+                    const vehicles = getVehiclesSync()
+                    if (vehicles.length > 0) {
+                        setCurrentVehicle(vehicles[0])
+                    }
+                }
+
                 setDataLoaded(true)
             } catch (error) {
                 console.error('Error cargando datos:', error)
@@ -171,7 +193,7 @@ export function GaragePage() {
             }
         }
         loadData()
-    }, [])
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Precargar modelo cuando cambia el vehículo
     useEffect(() => {
