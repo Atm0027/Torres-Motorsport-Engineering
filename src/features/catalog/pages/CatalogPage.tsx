@@ -11,7 +11,7 @@ import { Button } from '@components/ui/Button'
 import { Badge } from '@components/ui/Badge'
 import { useUserStore } from '@stores/userStore'
 import { useNotify } from '@stores/uiStore'
-import { getPartsSync, initializeDataService } from '@/services/dataService'
+import { getPartsSync, initializeDataService, isDataLoaded } from '@/services/dataService'
 import { PART_CATEGORIES } from '@/constants'
 import { formatCurrency } from '@utils/formatters'
 import type { PartCategory, Part } from '@/types'
@@ -28,14 +28,17 @@ export function CatalogPage() {
     const [selectedCategory, setSelectedCategory] = useState<PartCategory | 'all'>('all')
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
     const [sortBy, setSortBy] = useState<'price' | 'name'>('price')
+    const [dataReady, setDataReady] = useState(isDataLoaded())
 
-    // Inicializar servicio de datos
+    // Inicializar servicio de datos si no está listo
     useEffect(() => {
-        initializeDataService()
-    }, [])
+        if (!dataReady) {
+            initializeDataService().then(() => setDataReady(true))
+        }
+    }, [dataReady])
 
-    // Obtener catálogo de partes
-    const partsCatalog = getPartsSync()
+    // Obtener catálogo de partes (solo si los datos están listos)
+    const partsCatalog = dataReady ? getPartsSync() : []
 
     // Filter and sort parts
     const filteredParts = useMemo(() => {
