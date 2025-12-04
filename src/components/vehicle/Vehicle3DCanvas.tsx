@@ -247,14 +247,14 @@ const MODEL_INITIAL_ROTATION: Record<string, { x: number; y: number; z: number }
     'honda-nsx': { x: 0, y: 180, z: 0 },           // Modelo viene orientado hacia -Z
     'mitsubishi-evo-ix': { x: 0, y: 180, z: 0 },   // Modelo viene orientado hacia -Z
     'subaru-impreza-sti': { x: 0, y: 0, z: 0 },    // Sin rotación - usamos offset de cámara
-    // Europeos
-    'bmw-m3-e46': { x: -90, y: 0, z: -90 },        // Modelo está de lado (tumbado)
+    // Europeos - modelos corregidos en Blender
+    'bmw-m3-e46': { x: 0, y: 0, z: 0 },            // Ya corregido en GLB
     'porsche-911-gt3-997': { x: 0, y: 90, z: 0 },  // OK con rotación Y
     'mercedes-amg-gtr': { x: 0, y: 90, z: 0 },     // OK con rotación Y
-    // Americanos - modelos vienen de lado o inclinados
-    'ford-mustang-gt500': { x: -90, y: 0, z: 0 },  // Inclinado hacia abajo
+    // Americanos - modelos corregidos en Blender
+    'ford-mustang-gt500': { x: 0, y: 0, z: 0 },    // Ya corregido en GLB
     'chevrolet-camaro-zl1': { x: 0, y: 90, z: 0 }, // OK
-    'dodge-challenger-hellcat': { x: -90, y: 0, z: -90 }  // De lado (tumbado)
+    'dodge-challenger-hellcat': { x: 0, y: 0, z: 0 }  // Ya corregido en GLB
 }
 
 // Offset de ángulo azimutal por vehículo para ajustar las vistas de cámara
