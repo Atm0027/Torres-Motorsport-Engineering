@@ -472,6 +472,10 @@ const CAMERA_VIEW_SWAP: Record<string, Record<string, string>> = {
         'rear': 'side-left',         // Trasera muestra lateral izquierda (para corregir que muestra derecha)
         'side-left': 'rear',         // Lateral izq muestra trasera (para corregir que muestra frontal)
         'side-right': 'front'        // Lateral der muestra frontal (para corregir que muestra trasera)
+    },
+    'dodge-challenger-hellcat': {
+        'side-left': 'side-right',   // Intercambiar izquierda → derecha
+        'side-right': 'side-left'    // Intercambiar derecha → izquierda
     }
 }
 
