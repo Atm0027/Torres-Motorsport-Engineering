@@ -230,7 +230,7 @@ const MODEL_INITIAL_ROTATION: Record<string, { x: number; y: number; z: number }
     'porsche-911-gt3-997': { x: 0, y: 90, z: 0 },  // OK con rotación Y
     'mercedes-amg-gtr': { x: 0, y: 90, z: 0 },     // OK con rotación Y
     // Americanos - modelos corregidos en Blender
-    'ford-mustang-gt500': { x: 0, y: 0, z: -90 },  // Modelo viene rotado, corregir en Z
+    'ford-mustang-gt500': { x: 90, y: 0, z: 0 },   // Modelo viene vertical, corregir en X
     'chevrolet-camaro-zl1': { x: 0, y: 90, z: 0 }, // OK
     'dodge-challenger-hellcat': { x: 0, y: 0, z: 0 }  // Ya corregido en GLB
 }
