@@ -1,6 +1,7 @@
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
 import { Badge } from '@components/ui/Badge'
 import { getVehiclesSync } from '@/services/dataService'
+import { preloadVehicleModel } from '@components/vehicle/Vehicle3DCanvas'
 import type { Vehicle } from '@/types'
 
 interface VehicleSelectorProps {
@@ -14,6 +15,20 @@ export const VehicleSelector = memo(function VehicleSelector({
 }: VehicleSelectorProps) {
     const vehiclesDatabase = getVehiclesSync()
 
+    // Precargar modelo cuando se hace hover sobre una opción
+    const handleMouseEnter = useCallback((vehicleId: string) => {
+        preloadVehicleModel(vehicleId)
+    }, [])
+
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        const vehicle = vehiclesDatabase.find(v => v.id === e.target.value)
+        if (vehicle) {
+            // Precargar inmediatamente al seleccionar
+            preloadVehicleModel(vehicle.id)
+            onSelectVehicle(vehicle)
+        }
+    }, [vehiclesDatabase, onSelectVehicle])
+
     return (
         <div className="p-4 border-b border-torres-dark-500">
             <h3 className="font-display text-sm font-semibold text-torres-light-100 uppercase tracking-wider mb-3">
@@ -22,13 +37,14 @@ export const VehicleSelector = memo(function VehicleSelector({
             <select
                 className="input text-sm w-full"
                 value={currentVehicle?.id ?? ''}
-                onChange={(e) => {
-                    const vehicle = vehiclesDatabase.find(v => v.id === e.target.value)
-                    if (vehicle) onSelectVehicle(vehicle)
-                }}
+                onChange={handleChange}
             >
                 {vehiclesDatabase.map(vehicle => (
-                    <option key={vehicle.id} value={vehicle.id}>
+                    <option
+                        key={vehicle.id}
+                        value={vehicle.id}
+                        onMouseEnter={() => handleMouseEnter(vehicle.id)}
+                    >
                         {vehicle.year} {vehicle.manufacturer} {vehicle.name}
                     </option>
                 ))}

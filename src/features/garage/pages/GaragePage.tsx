@@ -31,6 +31,7 @@ import { Badge } from '@components/ui/Badge'
 import { StatBar } from '@components/ui/ProgressBar'
 import { useNotify } from '@stores/uiStore'
 import { getVehiclesSync, getVehicleByIdSync, initializeDataService } from '@/services/dataService'
+import { preloadVehicleModel } from '@components/vehicle/Vehicle3DCanvas'
 import { VIEW_MODES } from '@/constants'
 import { formatCurrency } from '@utils/formatters'
 import type { PartCategory, Vehicle, PerformanceMetrics, User } from '@/types'
@@ -155,10 +156,13 @@ export function GaragePage() {
     const [dataLoaded, setDataLoaded] = useState(false)
     const [loadError, setLoadError] = useState<string | null>(null)
 
-    // Inicializar servicio de datos
+    // Inicializar servicio de datos y precargar modelo por defecto
     useEffect(() => {
         const loadData = async () => {
             try {
+                // Precargar el modelo 3D del vehículo por defecto en paralelo con los datos
+                preloadVehicleModel('nissan-skyline-r34')
+
                 await initializeDataService()
                 setDataLoaded(true)
             } catch (error) {
@@ -168,6 +172,13 @@ export function GaragePage() {
         }
         loadData()
     }, [])
+
+    // Precargar modelo cuando cambia el vehículo
+    useEffect(() => {
+        if (currentVehicle) {
+            preloadVehicleModel(currentVehicle.id)
+        }
+    }, [currentVehicle?.id])
 
     // Hook para filtrar partes - solo si hay datos cargados
     const currentSectionData = GARAGE_SECTIONS[activeSection]
