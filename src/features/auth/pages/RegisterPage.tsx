@@ -126,6 +126,7 @@ export function RegisterPage() {
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                     className={`input pl-11 ${errors.username ? 'border-torres-danger' : ''}`}
                                     placeholder="TuNombre"
+                                    autoComplete="username"
                                 />
                             </div>
                             {errors.username && (
@@ -146,6 +147,7 @@ export function RegisterPage() {
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className={`input pl-11 ${errors.email ? 'border-torres-danger' : ''}`}
                                     placeholder="tu@email.com"
+                                    autoComplete="email"
                                 />
                             </div>
                             {errors.email && (
@@ -166,6 +168,7 @@ export function RegisterPage() {
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     className={`input pl-11 pr-11 ${errors.password ? 'border-torres-danger' : ''}`}
                                     placeholder="••••••••"
+                                    autoComplete="new-password"
                                 />
                                 <button
                                     type="button"
@@ -205,6 +208,7 @@ export function RegisterPage() {
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                     className={`input pl-11 ${errors.confirmPassword ? 'border-torres-danger' : ''}`}
                                     placeholder="••••••••"
+                                    autoComplete="new-password"
                                 />
                             </div>
                             {errors.confirmPassword && (

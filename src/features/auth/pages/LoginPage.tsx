@@ -99,6 +99,7 @@ export function LoginPage() {
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className={`input pl-11 ${errors.email ? 'border-torres-danger' : ''}`}
                                     placeholder="tu@email.com"
+                                    autoComplete="email"
                                 />
                             </div>
                             {errors.email && (
@@ -119,6 +120,7 @@ export function LoginPage() {
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     className={`input pl-11 pr-11 ${errors.password ? 'border-torres-danger' : ''}`}
                                     placeholder="••••••••"
+                                    autoComplete="current-password"
                                 />
                                 <button
                                     type="button"
