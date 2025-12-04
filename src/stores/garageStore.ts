@@ -6,6 +6,7 @@ import { DEFAULT_VEHICLE_COLORS, DEFAULT_VEHICLE_FINISHES } from '@/types'
 import { STORAGE_KEYS } from '@/constants'
 import { calculatePerformance } from '@utils/physics'
 import { checkCompatibility } from '@utils/compatibility'
+import { saveBuildToDb, deleteBuildFromDb, getCurrentUserId } from '@/services/buildService'
 
 interface GarageStoreState extends GarageState {
     // Vehicle actions
@@ -251,6 +252,22 @@ export const useGarageStore = create<GarageStoreState>()(
                 )
 
                 set({ savedBuilds: updatedBuilds })
+
+                // Guardar en Supabase de forma asíncrona
+                getCurrentUserId().then(userId => {
+                    if (userId) {
+                        saveBuildToDb(newBuild, userId).then(result => {
+                            if (result.success && result.id) {
+                                // Actualizar el ID del build con el de Supabase
+                                const builds = get().savedBuilds.map(b =>
+                                    b.vehicleId === newBuild.vehicleId ? { ...b, id: result.id! } : b
+                                )
+                                set({ savedBuilds: builds })
+                            }
+                        })
+                    }
+                })
+
                 return newBuild
             },
 
@@ -258,6 +275,13 @@ export const useGarageStore = create<GarageStoreState>()(
                 const { savedBuilds } = get()
                 set({
                     savedBuilds: savedBuilds.filter(b => b.id !== buildId)
+                })
+
+                // Eliminar de Supabase de forma asíncrona
+                getCurrentUserId().then(userId => {
+                    if (userId) {
+                        deleteBuildFromDb(buildId, userId)
+                    }
                 })
             },
 
