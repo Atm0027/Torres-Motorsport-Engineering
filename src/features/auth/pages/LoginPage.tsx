@@ -46,17 +46,19 @@ export function LoginPage() {
 
         setIsLoading(true)
 
-        // Simular delay de autenticación
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        try {
+            const success = await login(formData.email, formData.password)
 
-        const success = login(formData.email, formData.password)
-
-        if (success) {
-            notify.success('¡Bienvenido!', 'Has iniciado sesión correctamente')
-            navigate('/')
-        } else {
-            notify.error('Error', 'Credenciales incorrectas')
-            setErrors({ password: 'Email o contraseña incorrectos' })
+            if (success) {
+                notify.success('¡Bienvenido!', 'Has iniciado sesión correctamente')
+                navigate('/')
+            } else {
+                notify.error('Error', 'Credenciales incorrectas')
+                setErrors({ password: 'Email o contraseña incorrectos' })
+            }
+        } catch (error) {
+            notify.error('Error', 'No se pudo iniciar sesión')
+            console.error('Error en login:', error)
         }
 
         setIsLoading(false)

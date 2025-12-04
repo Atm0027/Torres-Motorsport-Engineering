@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, UserStats, Achievement } from '@/types'
 import { CURRENCY, STORAGE_KEYS } from '@/constants'
+import { registerUser, loginUser, logoutUser, isAuthAvailable } from '@/services/authService'
 
 interface UserState {
     user: User | null
@@ -11,8 +12,8 @@ interface UserState {
 
     // Actions
     setUser: (user: User | null) => void
-    login: (email: string, password: string) => boolean
-    register: (username: string, email: string, password: string) => boolean
+    login: (email: string, password: string) => Promise<boolean>
+    register: (username: string, email: string, password: string) => Promise<boolean>
     updateCurrency: (amount: number) => void
     spendCurrency: (amount: number) => boolean
     addCurrency: (amount: number) => void
@@ -65,7 +66,19 @@ export const useUserStore = create<UserState>()(
 
             setUser: (user) => set({ user, isAuthenticated: !!user }),
 
-            login: (email, password) => {
+            login: async (email, password) => {
+                // Intentar login con Supabase primero
+                if (isAuthAvailable()) {
+                    const result = await loginUser(email, password)
+                    if (result.success && result.user) {
+                        const user = createDefaultUser(result.user.username, result.user.email)
+                        user.id = result.user.id
+                        set({ user, isAuthenticated: true })
+                        return true
+                    }
+                }
+
+                // Fallback a login local
                 const { registeredUsers } = get()
                 const foundUser = registeredUsers.find(
                     u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
@@ -79,7 +92,22 @@ export const useUserStore = create<UserState>()(
                 return false
             },
 
-            register: (username, email, password) => {
+            register: async (username, email, password) => {
+                // Intentar registro con Supabase primero
+                if (isAuthAvailable()) {
+                    const result = await registerUser(username, email, password)
+                    if (result.success && result.user) {
+                        const user = createDefaultUser(result.user.username, result.user.email)
+                        user.id = result.user.id
+                        set({ user, isAuthenticated: true })
+                        return true
+                    } else if (result.error) {
+                        console.error('Error en registro Supabase:', result.error)
+                        // Continuar con fallback local si Supabase falla
+                    }
+                }
+
+                // Fallback a registro local
                 const { registeredUsers } = get()
 
                 // Check if email already exists
@@ -235,7 +263,10 @@ export const useUserStore = create<UserState>()(
                 })
             },
 
-            logout: () => set({ user: null, isAuthenticated: false }),
+            logout: () => {
+                logoutUser() // Cerrar sesión en Supabase también
+                set({ user: null, isAuthenticated: false })
+            },
         }),
         {
             name: STORAGE_KEYS.USER,

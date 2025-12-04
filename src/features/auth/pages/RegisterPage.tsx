@@ -73,17 +73,19 @@ export function RegisterPage() {
 
         setIsLoading(true)
 
-        // Simular delay de registro
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        try {
+            const success = await register(formData.username, formData.email, formData.password)
 
-        const success = register(formData.username, formData.email, formData.password)
-
-        if (success) {
-            notify.success('¡Cuenta creada!', 'Bienvenido a Torres Motorsport Engineering')
-            navigate('/')
-        } else {
+            if (success) {
+                notify.success('¡Cuenta creada!', 'Bienvenido a Torres Motorsport Engineering')
+                navigate('/')
+            } else {
+                notify.error('Error', 'No se pudo crear la cuenta')
+                setErrors({ email: 'Este email ya está registrado' })
+            }
+        } catch (error) {
             notify.error('Error', 'No se pudo crear la cuenta')
-            setErrors({ email: 'Este email ya está registrado' })
+            console.error('Error en registro:', error)
         }
 
         setIsLoading(false)
