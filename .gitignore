@@ -10,10 +10,12 @@ build
 *.local
 
 # IDE
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode
 .idea
+
+# Antigravity - Allow access
+!.gemini
+!.gemini/**
 
 # Testing
 coverage
