@@ -38,7 +38,9 @@ export function CatalogPage() {
     }, [dataReady])
 
     // Obtener catálogo de partes (solo si los datos están listos)
-    const partsCatalog = dataReady ? getPartsSync() : []
+    const partsCatalog = useMemo(() => {
+        return dataReady ? getPartsSync() : []
+    }, [dataReady])
 
     // Filter and sort parts
     const filteredParts = useMemo(() => {
@@ -72,7 +74,7 @@ export function CatalogPage() {
         })
 
         return parts
-    }, [searchQuery, selectedCategory, sortBy])
+    }, [searchQuery, selectedCategory, sortBy, partsCatalog])
 
     const isDemoUser = userEmail?.toLowerCase() === 'demo@torres.com'
 

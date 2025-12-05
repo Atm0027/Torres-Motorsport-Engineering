@@ -1,0 +1,51 @@
+# Torres Motorsport Engineering - Configuración del Workspace
+# ============================================================
+
+project:
+  name: "Torres Motorsport Engineering"
+  description: "Aplicación web para edición y personalización de coches"
+  type: "web-app"
+  language: "typescript"
+  framework: "vite"
+  version: "1.0.0"
+
+# Preferencias de desarrollo
+preferences:
+  language: "es"
+  style_guide: "eslint"
+  formatter: "prettier"
+  package_manager: "npm"
+
+# Estructura del proyecto
+structure:
+  source: "src"
+  public: "public"
+  output: "dist"
+  database: "database"
+  scripts: "scripts"
+
+# Configuración de despliegue
+deployment:
+  platform: "cloudflare-pages"
+  production_url: "https://torres-motorsport-engineering.pages.dev/"
+  branch: "main"
+
+# Tecnologías principales
+stack:
+  frontend:
+    - "React"
+    - "TypeScript"
+    - "TailwindCSS"
+    - "Vite"
+  backend:
+    - "Supabase"
+    - "Cloudflare Workers"
+  database:
+    - "Supabase PostgreSQL"
+
+# Variables de entorno requeridas
+env_required:
+  - "VITE_SUPABASE_URL"
+  - "VITE_SUPABASE_ANON_KEY"
+  - "CLOUDFLARE_TOKEN"
+  - "CLOUDFLARE_ACCOUNT_ID"
